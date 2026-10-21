@@ -135,7 +135,7 @@ def _guidance_checks(root: Path) -> list[dict[str, Any]]:
         path_check(root, "guidance", "AGENTS.md installed", "AGENTS.md", True),
         _codex_cli_runtime_check(),
         text_check(root, "guidance", "head-manager developer instructions configured", ".codex/config.toml", '# tcx-head-instructions:start', True),
-        text_check(root, "guidance", "head-manager instructions installed", ".codex/prompts/base_instructions/head-manager.md", "You are the `head-manager` for TradingCodex", True),
+        text_check(root, "guidance", "head-manager instructions installed", ".codex/prompts/base_instructions/head-manager.md", "At the root of a TradingCodex conversation", True),
         text_check(root, "guidance", "fixed-role base instructions installed", ".codex/prompts/base_instructions/fixed-role.md", "You are a fixed-role child in TradingCodex", True),
         *_launcher_checks(root),
         text_check(root, "guidance", "hooks configured", ".codex/hooks.json", "\"PreToolUse\"", True),
