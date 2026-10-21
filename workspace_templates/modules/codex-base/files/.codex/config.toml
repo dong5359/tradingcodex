@@ -57,7 +57,7 @@ glob_scan_max_depth = 4
 ".codex" = "deny"
 ".agents" = "read"
 ".tradingcodex" = "deny"
-".tradingcodex/user" = "write"
+".tradingcodex/user" = {{TRADINGCODEX_USER_METADATA_ACCESS_TOML}}
 ".tradingcodex/subagents/skills" = "read"
 "AGENTS.md" = "read"
 "tcx" = "read"
@@ -155,7 +155,7 @@ glob_scan_max_depth = 4
 ".codex" = "deny"
 ".agents" = "read"
 ".tradingcodex" = "deny"
-".tradingcodex/user" = "write"
+".tradingcodex/user" = {{TRADINGCODEX_USER_METADATA_ACCESS_TOML}}
 ".tradingcodex/cli.py" = "read"
 ".tradingcodex/workspace.json" = "read"
 "AGENTS.md" = "read"
@@ -277,12 +277,14 @@ enabled = true
 # BEGIN TradingCodex investment brain skills
 # END TradingCodex investment brain skills
 
+# BEGIN TradingCodex managed OpenBB
 [mcp_servers.openbb]
 command = "uvx"
 args = ["--from", "openbb-mcp-server", "--with", "openbb", "openbb-mcp", "--transport", "stdio"]
 enabled = {{OPENBB_MCP_ENABLED_TOML}}
 required = false
 env_vars = {{OPENBB_MCP_ENV_VARS_TOML}}
+# END TradingCodex managed OpenBB
 
 [mcp_servers.tradingcodex]
 command = {{TRADINGCODEX_PYTHON_TOML}}

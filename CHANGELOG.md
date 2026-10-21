@@ -10,7 +10,10 @@
   and independent-review gates.
 - Project child safety into supported developer instructions and remove ignored
   child MCP overrides. Keep native model instructions intact.
-
+- Preserve managed versus user OpenBB connections without duplicate TOML tables
+  during workspace updates. Keep protected metadata read-only on Windows to
+  avoid unsupported nested write exceptions; Investor Context CLI edits remain
+  available from the user's terminal.
 
 - Read deep packaged skill templates on native Windows without requiring
   system-wide long-path support, preserve the hash-locked calculation

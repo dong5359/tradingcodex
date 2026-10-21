@@ -500,6 +500,10 @@ def _generation_context(
     from tradingcodex_service.application.data_sources import openbb_projection_template_values
 
     context.update(openbb_projection_template_values(target))
+    # Windows cannot reopen a writable child below protected metadata.
+    context["TRADINGCODEX_USER_METADATA_ACCESS_TOML"] = json.dumps(
+        "read" if os.name == "nt" else "write"
+    )
     scratch_aliases = sorted(
         str(alias)
         for alias in workspace_scratch_permission_aliases(workspace_id, scratch_path)
@@ -2032,9 +2036,17 @@ def _preserve_user_codex_capabilities(target: Path, rendered: dict[str, str]) ->
         prefix, remainder = existing.split(legacy_start, 1)
         _, suffix = remainder.split(legacy_end, 1)
         existing = f"{prefix}\n{suffix}"
+    openbb_block = re.compile(
+        r"^# BEGIN TradingCodex managed OpenBB\n.*?^# END TradingCodex managed OpenBB\n?",
+        flags=re.M | re.S,
+    )
+    existing = openbb_block.sub("", existing)
     blocks = _user_codex_capability_blocks(existing)
     if not blocks:
         return
+    # A pre-existing user OpenBB connection takes precedence over our default.
+    if "openbb" in tomllib.loads(existing).get("mcp_servers", {}):
+        rendered[rel] = openbb_block.sub("", rendered[rel])
     preserved = "\n\n# BEGIN User Codex capabilities\n" + "\n\n".join(block.strip() for block in blocks)
     preserved += "\n# END User Codex capabilities\n"
     candidate = rendered[rel].rstrip() + preserved

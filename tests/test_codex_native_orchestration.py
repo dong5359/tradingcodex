@@ -267,12 +267,7 @@ def test_artifact_discovery_is_head_managed_and_fixed_roles_keep_exact_reads() -
     )
     for role in fixed_roles:
         role_text = (role_templates / f"{role}.toml").read_text(encoding="utf-8")
-        enabled_line = next(
-            line for line in role_text.splitlines() if line.startswith("enabled_tools = ")
-        )
-        enabled = set(json.loads(enabled_line.partition(" = ")[2]))
-        assert "get_research_artifact" in enabled
-        assert ARTIFACT_DISCOVERY_TOOLS.isdisjoint(enabled)
+        assert "mcp_servers" not in tomllib.loads(role_text)
 
     numeric_roles = {
         "fundamental-analyst",
@@ -765,9 +760,13 @@ def test_generated_mcp_allowlists_reference_only_registered_tools(workspace: Pat
         )
 
 
-def test_doctor_requires_fixed_role_base_and_per_role_override(workspace: Path) -> None:
+def test_doctor_requires_embedded_fixed_role_instructions(workspace: Path) -> None:
+    command = (
+        [os.environ.get("COMSPEC", "cmd.exe"), "/d", "/c", str(workspace / "tcx.cmd")]
+        if os.name == "nt" else [str(workspace / "tcx")]
+    )
     doctor = subprocess.run(
-        [str(workspace / "tcx"), "doctor", "--verbose"],
+        [*command, "doctor", "--verbose"],
         cwd=workspace,
         text=True,
         capture_output=True,

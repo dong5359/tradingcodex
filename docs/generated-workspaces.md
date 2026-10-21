@@ -836,7 +836,10 @@ workspace inputs, and write user-owned files outside `trading/`; disposable
 intermediates belong under `$TRADINGCODEX_SCRATCH`. The exact
 `.tradingcodex/user/` subtree is also user-owned and writable so confirmed
 Investor Context can be managed with native file tools; the rest of
-`.tradingcodex/` remains protected. Fixed-role Python
+`.tradingcodex/` remains protected. On Windows this subtree is read-only:
+Codex's Windows sandbox cannot reopen a writable descendant of protected
+metadata. Confirmed Investor Context edits use `tcx.cmd investor-context`
+from the user's terminal; existing context remains readable. Fixed-role Python
 calculations use only the generated scratch-local `tcx-calc` contract. They
 cannot modify
 `trading/`, generated control files, or the TradingCodex home, DB, attached
