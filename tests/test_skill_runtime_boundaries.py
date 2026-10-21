@@ -9,7 +9,7 @@ from tradingcodex_service.application.data_sources import disable_openbb, enable
 from tradingcodex_service.mcp_runtime import TOOL_REGISTRY
 
 
-def test_openbb_is_a_direct_optional_evidence_role_projection(tmp_path: Path) -> None:
+def test_openbb_is_a_direct_optional_inherited_projection(tmp_path: Path) -> None:
     root = tmp_path / "workspace"
     bootstrap_workspace(root)
 
@@ -19,7 +19,8 @@ def test_openbb_is_a_direct_optional_evidence_role_projection(tmp_path: Path) ->
     for role in RESEARCH_ROLES:
         assert "tcx-openbb" not in AGENT_SPECS[role].builtin_skills
         config = tomllib.loads((root / f".codex/agents/{role}.toml").read_text(encoding="utf-8"))
-        openbb = config["mcp_servers"]["openbb"]
+        assert "mcp_servers" not in config
+        openbb = tomllib.loads((root / ".codex/config.toml").read_text(encoding="utf-8"))["mcp_servers"]["openbb"]
         assert openbb["command"] == "uvx"
         assert openbb["args"] == [
             "--from", "openbb-mcp-server", "--with", "openbb", "openbb-mcp",
@@ -83,7 +84,7 @@ def test_openbb_enable_projects_env_names_only(tmp_path: Path) -> None:
     enable_openbb(root, ["FMP_API_KEY"])
     bootstrap_workspace(root, update=True)
 
-    config = tomllib.loads((root / ".codex/agents/fundamental-analyst.toml").read_text(encoding="utf-8"))
+    config = tomllib.loads((root / ".codex/config.toml").read_text(encoding="utf-8"))
     assert config["mcp_servers"]["openbb"]["enabled"] is True
     assert config["mcp_servers"]["openbb"]["env_vars"] == ["FMP_API_KEY"]
 
@@ -95,5 +96,5 @@ def test_openbb_explicit_disable_survives_workspace_update(tmp_path: Path) -> No
 
     bootstrap_workspace(root, update=True)
 
-    config = tomllib.loads((root / ".codex/agents/fundamental-analyst.toml").read_text(encoding="utf-8"))
+    config = tomllib.loads((root / ".codex/config.toml").read_text(encoding="utf-8"))
     assert config["mcp_servers"]["openbb"]["enabled"] is False

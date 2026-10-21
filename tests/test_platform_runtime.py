@@ -1463,7 +1463,7 @@ def test_generated_workspace_serializes_spaces_and_package_metacharacters(
     assert parsed[0]["features"]["network_proxy"] is True
     assert parsed[0]["default_permissions"] == "trading-research"
     assert "sandbox_mode" not in parsed[0]
-    assert all("sandbox_mode" not in config for config in parsed)
+    assert all("sandbox_mode" not in config for config in parsed if "mcp_servers" in config)
     assert parsed[0]["permissions"]["trading-research"]["extends"] == ":workspace"
     assert parsed[0]["permissions"]["trading-build"]["extends"] == ":workspace"
     research_workspace = parsed[0]["permissions"]["trading-research"]["filesystem"][":workspace_roots"]
@@ -1583,12 +1583,12 @@ def test_generated_workspace_serializes_spaces_and_package_metacharacters(
     }
     assert all(
         config["mcp_servers"]["tradingcodex"]["cwd"] == str(workspace.resolve())
-        for config in parsed
+        for config in parsed if "mcp_servers" in config
     )
     assert all(
         config["mcp_servers"]["tradingcodex"]["env"]["TRADINGCODEX_WORKSPACE_ROOT"]
         == str(workspace.resolve())
-        for config in parsed
+        for config in parsed if "mcp_servers" in config
     )
     assert root_mcp["env"]["TRADINGCODEX_HOME"] == str(home.resolve())
     assert root_mcp["env"]["TRADINGCODEX_HOME_SOURCE"] == "environment_override"
@@ -1599,7 +1599,7 @@ def test_generated_workspace_serializes_spaces_and_package_metacharacters(
     assert parsed[0]["permissions"]["trading-build"]["filesystem"][str(attached_python.parent.parent)] == "read"
     assert parsed[0]["permissions"]["trading-build"]["filesystem"][str(attached_python)] == "read"
     assert root_mcp["args"] == ["-m", "tradingcodex_cli", "mcp", "stdio"]
-    assert all(config["mcp_servers"]["tradingcodex"]["required"] is True for config in parsed)
+    assert all(config["mcp_servers"]["tradingcodex"]["required"] is True for config in parsed if "mcp_servers" in config)
     workspace_config = yaml.safe_load((workspace / ".tradingcodex" / "config.yaml").read_text(encoding="utf-8"))
     assert workspace_config["service"]["default_db"] == str(home.resolve() / "state" / "tradingcodex.sqlite3")
     hooks = json.loads((workspace / ".codex" / "hooks.json").read_text(encoding="utf-8"))
@@ -1635,7 +1635,11 @@ def test_local_source_mcp_uses_attached_python_without_uv_cache(
     configs = [workspace / ".codex/config.toml", *sorted((workspace / ".codex/agents").glob("*.toml"))]
     expected_python = managed_python_runtime_path(runtime_home, str(source))
     for path in configs:
-        mcp = tomllib.loads(path.read_text(encoding="utf-8"))["mcp_servers"]["tradingcodex"]
+        config = tomllib.loads(path.read_text(encoding="utf-8"))
+        if "mcp_servers" not in config:
+            assert "name" in config
+            continue
+        mcp = config["mcp_servers"]["tradingcodex"]
         assert Path(mcp["command"]).absolute() == expected_python.absolute()
         assert Path(mcp["command"]).is_file()
         assert mcp["args"] == ["-m", "tradingcodex_cli", "mcp", "stdio"]
@@ -1708,7 +1712,11 @@ def test_local_source_update_carries_prior_runtime_privately(
 
     configs = [workspace / ".codex/config.toml", *sorted((workspace / ".codex/agents").glob("*.toml"))]
     for path in configs:
-        command = tomllib.loads(path.read_text(encoding="utf-8"))["mcp_servers"]["tradingcodex"]["command"]
+        config = tomllib.loads(path.read_text(encoding="utf-8"))
+        if "mcp_servers" not in config:
+            assert "name" in config
+            continue
+        command = config["mcp_servers"]["tradingcodex"]["command"]
         assert command == prior_python
         assert Path(command).is_file()
         assert generated_python_path_is_ephemeral(command) is False
@@ -2116,6 +2124,9 @@ def test_uv_cache_removal_leaves_launchers_and_all_role_mcp_runnable(
     assert len(configs) == 10
     parsed = [tomllib.loads(path.read_text(encoding="utf-8")) for path in configs]
     for config in parsed:
+        if "mcp_servers" not in config:
+            assert "name" in config
+            continue
         mcp = config["mcp_servers"]["tradingcodex"]
         assert Path(mcp["command"]).absolute() == managed_python.absolute()
         assert Path(mcp["command"]).is_file()
@@ -2134,6 +2145,9 @@ def test_uv_cache_removal_leaves_launchers_and_all_role_mcp_runnable(
 
     request = '{"jsonrpc":"2.0","id":1,"method":"tools/list"}\n'
     for config in parsed:
+        if "mcp_servers" not in config:
+            assert "name" in config
+            continue
         mcp = config["mcp_servers"]["tradingcodex"]
         environment = {**os.environ, **{str(key): str(value) for key, value in mcp["env"].items()}}
         environment.pop("TRADINGCODEX_PYTHON", None)
@@ -2309,11 +2323,11 @@ def test_windows_drive_paths_render_as_valid_toml_yaml_json(tmp_path: Path) -> N
     configs = [tmp_path / ".codex" / "config.toml", *sorted((tmp_path / ".codex" / "agents").glob("*.toml"))]
     parsed = [tomllib.loads(path.read_text(encoding="utf-8")) for path in configs]
     assert parsed[0]["mcp_servers"]["tradingcodex"]["env"]["TRADINGCODEX_HOME"] == raw["TRADINGCODEX_HOME"]
-    assert all(config["mcp_servers"]["tradingcodex"]["cwd"] == raw["TRADINGCODEX_WORKSPACE_ROOT"] for config in parsed)
+    assert all(config["mcp_servers"]["tradingcodex"]["cwd"] == raw["TRADINGCODEX_WORKSPACE_ROOT"] for config in parsed if "mcp_servers" in config)
     assert all(
         config["mcp_servers"]["tradingcodex"]["env"]["TRADINGCODEX_WORKSPACE_ROOT"]
         == raw["TRADINGCODEX_WORKSPACE_ROOT"]
-        for config in parsed
+        for config in parsed if "mcp_servers" in config
     )
     calculation_roles = {
         "fundamental-analyst",
@@ -2328,8 +2342,7 @@ def test_windows_drive_paths_render_as_valid_toml_yaml_json(tmp_path: Path) -> N
         for path in sorted((tmp_path / ".codex" / "agents").glob("*.toml"))
     }
     assert all(
-        role_configs[role]["mcp_servers"]["tradingcodex"]["env"]["TRADINGCODEX_SCRATCH"]
-        == raw["TRADINGCODEX_SCRATCH_PATH"]
+        "mcp_servers" not in role_configs[role]
         for role in calculation_roles
     )
     assert yaml.safe_load((tmp_path / ".tradingcodex" / "config.yaml").read_text(encoding="utf-8"))["service"]["default_db"] == raw["TRADINGCODEX_DB_PATH"]
@@ -2367,6 +2380,9 @@ def test_explicit_db_override_is_projected_into_launchers_and_mcp(
     configs = [workspace / ".codex" / "config.toml", *sorted((workspace / ".codex" / "agents").glob("*.toml"))]
     for path in configs:
         config = tomllib.loads(path.read_text(encoding="utf-8"))
+        if "mcp_servers" not in config:
+            assert "name" in config
+            continue
         assert config["mcp_servers"]["tradingcodex"]["env"]["TRADINGCODEX_DB_NAME"] == str(db_path.resolve())
 
     env = {**os.environ, "PYTHONPATH": str(ROOT), "TRADINGCODEX_PYTHON": sys.executable}

@@ -362,6 +362,9 @@ def main() -> None:
         assert build_filesystem[str(attached_python)] == "read"
         for config in configs:
             assert "sandbox_mode" not in config
+            if "mcp_servers" not in config:
+                assert "Your assigned specialist role" in config["developer_instructions"]
+                continue
             mcp = config["mcp_servers"]["tradingcodex"]
             assert Path(mcp["command"]).absolute() == attached_python.absolute()
             assert mcp["args"] == ["-m", "tradingcodex_cli", "mcp", "stdio"]
@@ -376,7 +379,11 @@ def main() -> None:
             env=environment,
         )
         for path in config_paths:
-            updated_mcp = tomllib.loads(path.read_text(encoding="utf-8"))["mcp_servers"]["tradingcodex"]
+            updated_config = tomllib.loads(path.read_text(encoding="utf-8"))
+            if "mcp_servers" not in updated_config:
+                assert "Your assigned specialist role" in updated_config["developer_instructions"]
+                continue
+            updated_mcp = updated_config["mcp_servers"]["tradingcodex"]
             updated_python = Path(updated_mcp["command"])
             assert updated_python.absolute() == attached_python.absolute()
             assert updated_python.is_file()
@@ -454,14 +461,9 @@ print(os.environ['TMPDIR'])
             "None",
             str(scratch),
         ]
-        technical_mcp = next(
-            config["mcp_servers"]["tradingcodex"]
-            for config in configs[1:]
-            if config["mcp_servers"]["tradingcodex"]["env"].get(
-                "TRADINGCODEX_MCP_PRINCIPAL"
-            )
-            == "technical-analyst"
-        )
+        # Calculation service smoke uses explicit in-process service authority.
+        # Native children inherit this root runtime, not a role-specific MCP.
+        technical_mcp = configs[0]["mcp_servers"]["tradingcodex"]
         runtime_root = Path(
             technical_mcp["env"]["TRADINGCODEX_CALCULATION_RUNTIME_ROOT"]
         )

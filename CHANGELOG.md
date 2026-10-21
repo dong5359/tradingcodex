@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 2.1.4rc1
+
+- Fix current Codex MCP inheritance: native children return sourced research
+  handoffs; the coordinator records source snapshots and research-only evidence
+  packs using its actual authenticated identity. Preserve separate approval
+  and independent-review gates.
+- Project child safety into supported developer instructions and remove ignored
+  child MCP overrides. Keep native model instructions intact.
+
+
 - Read deep packaged skill templates on native Windows without requiring
   system-wide long-path support, preserve the hash-locked calculation
   requirements as LF on Windows Git checkouts, and pin default managed-runtime

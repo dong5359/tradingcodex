@@ -20,6 +20,32 @@ Start a workflow only for research, valuation, forecasts, recommendations,
 portfolio or risk judgment, order preparation, approval review, or a question
 that needs fresh evidence or more than one distinct expertise.
 
+## Native Child Handoffs
+
+Current Codex children inherit the parent MCP connection. A fixed-role TOML
+cannot establish a separate MCP principal. Give each child a research-only
+brief and ask for sources, dates, relevant excerpts, findings, assumptions,
+confidence, gaps, and reusable IDs. Children return findings without calling
+TradingCodex write tools. Do not interpret a profile name as authentication.
+
+After checking a handoff, Head Manager records its sources using
+`record_source_snapshot`, then stores `artifact_type=evidence_pack` through
+`create_research_artifact` with `status.action_readiness=research-only`, the
+assigned run, and the returned `lineage.source_snapshot_ids`. Preserve the
+specialist's attribution in the report text; omit role/principal overrides.
+Use service-returned times to choose a truthful knowledge cutoff that includes
+the recorded sources. The receipt authenticates Head Manager's recording of
+the handoff, not a separate analyst identity or factual correctness.
+
+Integrate accepted run-local evidence packs in the normal synthesis path.
+Independent research opinions may challenge a conclusion, but a head-manager
+evidence pack cannot satisfy authenticated risk, portfolio, approval, or
+judgment-reviewer requirements. Preserve those gaps when a gated operation
+needs them. Research can finish without asserting order readiness.
+
+These storage rules apply to the workflow below and to role skills that
+otherwise expect an independently authenticated specialist MCP connection.
+
 ## Workflow
 
 1. Preserve the user's outcome, constraints, and exclusions. Ask only when a
@@ -48,10 +74,10 @@ that needs fresh evidence or more than one distinct expertise.
    and no-order boundary; it cannot approve, execute, access secrets, or act as
    a broker. Do not replace an independent
    `risk-manager` or `judgment-reviewer` review with a generic child: return an
-   explicit profile gap as `blocked` or `waiting`. Call `spawn_agent` for an
-   exact profile with its `agent_type`, a compact `message`, `task_name`, and
-   `fork_turns="none"`; let its role TOML supply
-   the fixed model settings. Success requires a live target; correct a rejected
+   explicit profile gap as `blocked` or `waiting`. Use the native delegation tool schema available in this session. Select an
+   exact profile only when the tool supports it; never send an unsupported
+   `agent_type`. Pass a compact brief without root-history inheritance where
+   supported. A generic evidence child receives the same research-only boundary. Success requires a live target; correct a rejected
    spawn only from its error.
 6. Before refetching a reusable data family, check only current-workflow Snapshot/Dataset candidates.
    Give it one owner and brief every child with
@@ -66,7 +92,7 @@ that needs fresh evidence or more than one distinct expertise.
    target in this run and only while that child has useful work. Otherwise do
    not call it. Update only on observable material change; a timeout is not
    progress.
-9. Save an authenticated role artifact when evidence changes a conclusion,
+9. Record a parent-owned evidence pack from the sourced handoff when evidence changes a conclusion,
    supports a consequential judgment or handoff, records a material conflict or
    gap, or has future reuse or audit value. Do not save a narrow fact, status,
    temporary exploration, or restatement of one existing artifact.

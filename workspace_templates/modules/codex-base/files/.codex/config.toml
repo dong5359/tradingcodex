@@ -3,7 +3,7 @@ approval_policy = { granular = { sandbox_approval = true, rules = true, mcp_elic
 approvals_reviewer = "user"
 allow_login_shell = false
 web_search = "live"
-model_instructions_file = "prompts/base_instructions/head-manager.md"
+# Head Manager developer instructions are projected from the canonical prompt.
 
 [permissions.trading-research]
 extends = ":workspace"
@@ -276,6 +276,13 @@ enabled = true
 
 # BEGIN TradingCodex investment brain skills
 # END TradingCodex investment brain skills
+
+[mcp_servers.openbb]
+command = "uvx"
+args = ["--from", "openbb-mcp-server", "--with", "openbb", "openbb-mcp", "--transport", "stdio"]
+enabled = {{OPENBB_MCP_ENABLED_TOML}}
+required = false
+env_vars = {{OPENBB_MCP_ENV_VARS_TOML}}
 
 [mcp_servers.tradingcodex]
 command = {{TRADINGCODEX_PYTHON_TOML}}

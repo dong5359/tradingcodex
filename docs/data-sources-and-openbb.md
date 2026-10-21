@@ -107,9 +107,9 @@ Treasury, BLS, ECB, World Bank, CFTC, Bank of Canada, or similar sources.
 
 OpenBB is enabled by default as an optional, non-required source and is not
 installed or started by `tcx attach` or `tcx update`. Generated configuration
-projects the official upstream MCP directly to fundamental, technical, news,
-macro, instrument, and valuation roles only. Head Manager, portfolio, risk,
-and judgment roles do not receive it. An explicit `disable` choice is preserved
+projects the official upstream MCP in the parent configuration. Native children
+inherit it; research assignments determine when to use it, not a role-specific
+MCP override. An explicit `disable` choice is preserved
 by later workspace updates.
 
 ```toml

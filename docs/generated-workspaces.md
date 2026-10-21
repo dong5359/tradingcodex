@@ -237,22 +237,19 @@ Generated workspaces contain:
 
 - one root `head-manager`
 - nine fixed analytical and decision-support subagents; no execution subagent
-- an optional, `required=false` direct OpenBB stdio MCP block in only the six
-  evidence-producing role TOMLs. It is enabled by default, an explicit disable
-  survives update, and Head Manager, portfolio, risk, and judgment roles never
-  receive raw OpenBB tools
+- an optional, `required=false` direct OpenBB stdio MCP block in the parent
+  config, inherited by native children; an explicit disable survives update
 - an immutable workspace manifest at `.tradingcodex/workspace.json`
-- root `head-manager` identity loaded from `.codex/prompts/base_instructions/head-manager.md` through `.codex/config.toml` `model_instructions_file`
+- root `head-manager` identity loaded from `.codex/prompts/base_instructions/head-manager.md` through projected `.codex/config.toml` `developer_instructions`
 - `.codex/config.toml` inherits the user's root model and reasoning settings;
   fixed-role TOML files project the child settings defined in
   [Roles, Skills, And Workflows](roles-skills-and-workflows.md)
 - sectioned Markdown base-instruction format for `head-manager`, including `# How you work`, TradingCodex guardrails, and tool guidelines
-- a separate compact `.codex/prompts/base_instructions/fixed-role.md` referenced
-  by every fixed-role TOML through its own `model_instructions_file`; this
-  config is intended to keep the root-only Build, Brain, Strategy, order, and
-  coordination manual out of child turns. `tcx doctor` verifies the base file
-  and every role-local override; the required native JSONL dispatch smoke below
-  verifies the effective child prompt at runtime
+- a separate compact `.codex/prompts/base_instructions/fixed-role.md` composed
+  into every child's supported `developer_instructions`. Native children inherit
+  the parent MCP connection; research handoffs are recorded by the coordinator
+  under its actual identity, as described in
+  [Roles, Skills, And Workflows](roles-skills-and-workflows.md#native-mcp-inheritance)
 - Codex-style operating style in the root `head-manager` prompt: scoped
   `AGENTS.md` handling, concise preambles, selective planning, exact safe
   workspace reads, native `apply_patch` edits, dirty-worktree respect, concise
@@ -263,7 +260,7 @@ Generated workspaces contain:
   skill routing, optional-skill management, and approved action boundaries;
   `fixed-role.md` owns shared child safety, evidence, compact artifact, and
   evidence-backed gap handling; fixed subagent TOML files own specialist identity,
-  MCP/tool config, and role-specific prohibitions; repo skills are
+  research scope and role-specific prohibitions; repo skills are
   canonical bundles with concise `SKILL.md` entrypoints and task-routed
   resources at purpose-named paths. They provide dependency-light capability
   procedures for workflow maps, compact assignment-envelope templates,
@@ -297,13 +294,9 @@ Generated workspaces contain:
   `followup_task` for owner corrections, and follows the canonical role and
   fallback boundary in [Roles, Skills, And Workflows](roles-skills-and-workflows.md).
   Children remain depth one and receive compact context
-- role-scoped web search: root `.codex/config.toml` sets `web_search="live"`
-  so Head Manager can perform narrow planning reconnaissance before choosing or
-  revising the team. Those results are untrusted planning leads, never accepted
-  investment evidence, and every material fact must be reacquired by a producing
-  role through an authenticated run-local artifact. The six evidence-producing
-  custom agents also use live search; portfolio, risk, and judgment-review TOML
-  files explicitly set `web_search="disabled"`
+- parent web search: `.codex/config.toml` sets `web_search="live"`; native
+  children inherit it. Assignments determine research scope. Sourced handoffs
+  are checked and recorded by the coordinator before synthesis
 - native spawn ownership: Codex validates, schedules, and records child
   operations. TradingCodex does not register child lifecycle hooks or duplicate
   native role, task-name, fork, model, or reasoning validation
@@ -1022,7 +1015,7 @@ The service still revalidates permission, policy, ticket, receipt, requested
 mode, duplicate-request state, connection, live confirmation, and audit before
 any adapter call.
 
-Each root or fixed-role MCP instance binds its immutable transport identity in
+Each independently configured MCP instance binds its transport identity in
 `TRADINGCODEX_MCP_PRINCIPAL`. A caller-supplied `principal_id` must match that
 binding and cannot elevate the role. Direct CLI calls that intentionally act as
 a role establish the same transport binding before entering stdio dispatch.
@@ -1048,7 +1041,7 @@ propagate only the non-secret `local-explicit` kind marker and run entirely from
 the copied managed environment.
 
 Codex may resolve a relative MCP `cwd` from the caller process rather than the
-project selected with `-C`. Root and fixed-role MCP entries therefore record the
+project selected with `-C`. The root MCP entry inherited by native children therefore records the
 attached workspace's absolute path in both `cwd` and
 `TRADINGCODEX_WORKSPACE_ROOT`, so run, artifact, receipt, and audit paths cannot
 fall through to the source checkout or another caller directory. Moving or
@@ -1057,22 +1050,13 @@ attach a new destination workspace rather than updating the inherited identity.
 If needed, copy only user-owned material into that new workspace before opening
 it in Codex.
 
-TradingCodex owns only the `tradingcodex` MCP entry in project config. Other
+TradingCodex projects `tradingcodex` and the optional direct `openbb` entry in project config. Other
 MCP, plugin, and skill entries are user-owned Codex configuration and survive
-update. Root live web search is limited by durable instructions to
-planning-only reconnaissance; raw results cannot support accepted evidence or
-synthesis claims. The six evidence-producing custom agents may use their
-role-local live web setting and available native Codex capabilities to gather
-public filings, disclosures, news, web sources, and market-data references
-while the filesystem remains read-only. TradingCodex does not classify or
-block those user-installed capabilities. Codex sandbox, approval, and organization
-requirements still apply, while TradingCodex service policy continues to protect
-its own principals, grants, order proofs, protected state, and execution path.
-Current-task callable tools, not the System inventory or the TradingCodex MCP
-allowlist alone, determine whether an external data call can be made. Agents
-must try the narrow read-only tool before reporting a capability or data field
-unavailable and must state separately whether configuration was discovered and
-whether the current task exposed or successfully called the tool.
+update. Native children use the parent's available capabilities for public research.
+The coordinator records source snapshots and sourced handoffs without claiming
+independent specialist authentication. Native sandbox, approval, and
+organization requirements remain authoritative. Report capability failures from
+actual tool results rather than treating installed metadata as callability.
 Broker APIs are attached through provider-driven TradingCodex connector profiles
 using canonical MCP tools such as `list_broker_adapter_providers`,
 `render_broker_connector_scaffold`, `register_broker_connector`,
