@@ -1316,6 +1316,65 @@ def test_bare_package_name_never_becomes_local_from_cwd(
     )
 
 
+def test_default_managed_runtime_matches_bootstrapping_version(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(generator, "TRADINGCODEX_VERSION", "2.1.2")
+    assert generator._managed_runtime_install_spec("tradingcodex") == "tradingcodex==2.1.2"
+
+
+@pytest.mark.parametrize("source", [
+    "tradingcodex==2.1.1",
+    "tradingcodex>=2.1",
+    "https://downloads.example.test/tradingcodex.whl",
+])
+def test_explicit_managed_runtime_source_is_preserved(source: str) -> None:
+    assert generator._managed_runtime_install_spec(source) == source
+
+
+@pytest.mark.skipif(os.name != "nt", reason="native Windows extended paths")
+def test_render_templates_beyond_windows_max_path(tmp_path: Path) -> None:
+    module_dir = tmp_path / ("runtime-" + "x" * 80) / ("package-" + "y" * 80)
+    relative = ".tradingcodex/subagents/skills/judgment-reviewer/tcx-judgment/agents/openai.yaml"
+    extended = Path("\\\\?\\" + str(module_dir.absolute()))
+    source = extended / "files" / relative
+    assert len(str(source)) > 260
+    source.parent.mkdir(parents=True)
+    source.write_text("interface:\n  display_name: TCX Judgment\n", encoding="utf-8")
+    try:
+        for root in (module_dir, extended):
+            module = generator.Module("repo-skills", "", root, {})
+            assert render_template_modules([module], {}) == {
+                relative: "interface:\n  display_name: TCX Judgment\n",
+            }
+    finally:
+        shutil.rmtree(extended)
+
+
+@pytest.mark.skipif(os.name != "nt", reason="native Windows extended paths")
+def test_long_source_snapshot_and_digest_preserve_deep_files(tmp_path: Path) -> None:
+    source = tmp_path / "source"
+    relative = "workspace_templates/modules/repo-skills/files/" + "nested/" * 30 + "openai.yaml"
+    deep_file = generator._filesystem_path(source / relative)
+    deep_file.parent.mkdir(parents=True)
+    deep_file.write_text("first\n", encoding="utf-8")
+    snapshot = None
+    try:
+        before = hashlib.sha256()
+        generator._update_local_runtime_source_digest(before, source)
+        snapshot = generator._snapshot_local_runtime_source(source, tmp_path)
+        assert generator._filesystem_path(snapshot / relative).read_text(encoding="utf-8") == "first\n"
+        copied = hashlib.sha256()
+        generator._update_local_runtime_source_digest(copied, snapshot)
+        assert copied.hexdigest() == before.hexdigest()
+        deep_file.write_text("changed\n", encoding="utf-8")
+        after = hashlib.sha256()
+        generator._update_local_runtime_source_digest(after, source)
+        assert before.hexdigest() != after.hexdigest()
+    finally:
+        shutil.rmtree(generator._filesystem_path(source))
+        if snapshot is not None:
+            shutil.rmtree(generator._filesystem_path(snapshot))
+
+
 def test_native_windows_file_url_is_canonicalized_without_a_rooted_drive_path() -> None:
     assert canonical_executable_source(
         "file:///C:/Program%20Files/TradingCodex/tradingcodex.whl",
