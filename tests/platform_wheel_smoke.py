@@ -464,10 +464,7 @@ print(os.environ['TMPDIR'])
         ]
         # Calculation service smoke uses explicit in-process service authority.
         # Native children inherit this root runtime, not a role-specific MCP.
-        technical_mcp = configs[0]["mcp_servers"]["tradingcodex"]
-        runtime_root = Path(
-            technical_mcp["env"]["TRADINGCODEX_CALCULATION_RUNTIME_ROOT"]
-        )
+        runtime_root = Path(calculation_roots[0])
         runtime_manifest = runtime_root / "runtime-manifest.json"
         assert runtime_manifest.is_file()
         prepared_script = scratch / "platform-prepared.py"
