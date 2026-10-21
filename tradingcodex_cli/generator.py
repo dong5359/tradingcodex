@@ -500,10 +500,6 @@ def _generation_context(
     from tradingcodex_service.application.data_sources import openbb_projection_template_values
 
     context.update(openbb_projection_template_values(target))
-    # Windows cannot reopen a writable child below protected metadata.
-    context["TRADINGCODEX_USER_METADATA_ACCESS_TOML"] = json.dumps(
-        "read" if os.name == "nt" else "write"
-    )
     scratch_aliases = sorted(
         str(alias)
         for alias in workspace_scratch_permission_aliases(workspace_id, scratch_path)
@@ -1743,6 +1739,10 @@ def serialized_template_context(raw: dict[str, str]) -> dict[str, str]:
     )
     context.setdefault("OPENBB_MCP_ENABLED_TOML", "true")
     context.setdefault("OPENBB_MCP_ENV_VARS_TOML", "[]")
+    # Windows cannot reopen a writable child below protected metadata.
+    context.setdefault("TRADINGCODEX_USER_METADATA_ACCESS_TOML", json.dumps(
+        "read" if os.name == "nt" else "write"
+    ))
     context["TRADINGCODEX_DB_ENV_SHELL"] = (
         "if [ -z \"${TRADINGCODEX_DB_NAME:-}\" ]; then\n"
         f"  export TRADINGCODEX_DB_NAME={context['TRADINGCODEX_DB_PATH_SHELL']}\n"

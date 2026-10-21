@@ -2074,9 +2074,11 @@ def test_real_custom_source_attach_patch_update_and_same_version_refresh(
     ]
     assert len(config_paths) == 10
     for config_path in config_paths:
-        mcp = tomllib.loads(config_path.read_text(encoding="utf-8"))["mcp_servers"][
-            "tradingcodex"
-        ]
+        config = tomllib.loads(config_path.read_text(encoding="utf-8"))
+        if "mcp_servers" not in config:
+            assert "name" in config
+            continue
+        mcp = config["mcp_servers"]["tradingcodex"]
         projected_python = Path(mcp["command"])
         assert projected_python == third_python
         assert projected_python.is_file()
@@ -2271,14 +2273,14 @@ def test_doctor_rejects_relative_mcp_workspace_binding(monkeypatch: pytest.Monke
     assert "head-manager" in binding["detail"]
 
 
-def test_doctor_requires_mcp_initialization_for_every_fixed_role(
+def test_doctor_requires_mcp_initialization_for_inherited_root_connection(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
     workspace = tmp_path / "workspace"
     monkeypatch.setenv("TRADINGCODEX_HOME", str(tmp_path / "home"))
     bootstrap_workspace(workspace)
-    role_path = workspace / ".codex/agents/fundamental-analyst.toml"
+    role_path = workspace / ".codex/config.toml"
     role_config = role_path.read_text(encoding="utf-8")
     assert "required = true" in role_config
     role_path.write_text(role_config.replace("required = true\n", "", 1), encoding="utf-8")

@@ -64,7 +64,7 @@ otherwise expect an independently authenticated specialist MCP connection.
    decision-relevant unknowns, and choose the smallest useful role set. Skip the
    playbook for a narrow fact or recorded order, approval, or execution status.
    Dispatch only for distinct expertise or independent challenge. Use
-   `risk-manager` where its separate risk authority materially improves the
+   `risk-manager` where its independent risk perspective materially improves the
    result. Use `judgment-reviewer` when a recommendation, portfolio/risk
    decision, material conflict, or high-consequence uncertainty benefits from
    adversarial adjudication; do not force it onto narrow facts or requests
@@ -83,7 +83,8 @@ otherwise expect an independently authenticated specialist MCP connection.
    Give it one owner and brief every child with
    that ownership, exact reusable IDs, and the missing slice. Require reuse of
    supplied IDs; no child recollects another owner's complete family. Tell the
-   owner to load `$tcx-source-gate` and return IDs, not raw output.
+   owner to load `$tcx-source-gate` and return existing IDs or source links,
+   dates, and relevant excerpts. Head Manager records any new snapshots.
 7. Reuse a live child's session with `followup_task` for work it still owns.
    Start another only for a new specialty, unavailable session, or independent
    review; parallelize independent questions. Never claim activity absent from
@@ -103,12 +104,12 @@ otherwise expect an independently authenticated specialist MCP connection.
 
 1. Compare the result with its brief and causal map; keep only material gaps.
 2. Same owner: use one bounded follow-up via `followup_task`. Label its target
-   owner Artifact ID (append/revise) separately from triggering cross-role
+   handoff's parent-recorded Artifact ID (append/revise) separately from triggering cross-role
    Artifact IDs (consumed evidence), then give the exact delta. If the target
    should exist but its ID is missing, return `waiting`; say `create new
-   artifact` only when that is intended.
+   artifact` only when that is intended; Head Manager performs the write.
 3. New specialty: dispatch its role with the Artifact IDs as triggers, no target
-   ID and an explicit `create new artifact` instruction, plus the causal question
+   ID and an explicit `return a new sourced handoff` instruction, plus the causal question
    and missing evidence. Use independent review for material conflict.
 4. Recheck the changed link. Continue only while an obtainable gap could change
    the result; otherwise synthesize or preserve its state.

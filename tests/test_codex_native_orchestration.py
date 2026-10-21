@@ -178,9 +178,9 @@ def test_child_briefs_and_artifact_skills_keep_capabilities_and_lineage_distinct
 
     assert "brief every child with that ownership, exact reusable IDs, and the missing slice" in flat_workflow
     assert "no child recollects another owner's complete family" in flat_workflow
-    assert "target owner Artifact ID (append/revise) separately from triggering cross-role Artifact IDs" in flat_workflow
+    assert "parent-recorded Artifact ID (append/revise) separately from triggering cross-role Artifact IDs" in flat_workflow
     assert "If the target should exist but its ID is missing, return `waiting`" in flat_workflow
-    assert "no target ID and an explicit `create new artifact` instruction" in flat_workflow
+    assert "no target ID and an explicit `return a new sourced handoff` instruction" in flat_workflow
     assert "Never print full tool records, scan descriptions, or repeat a schema lookup" in flat_workflow
 
     assert "compact TradingCodex v2 research artifacts" in flat_artifact
