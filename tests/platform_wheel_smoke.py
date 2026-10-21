@@ -258,11 +258,12 @@ def main() -> None:
         assert build_filesystem[calculation_roots[0]] == "deny"
         assert research_workspace["trading"] == "read"
         assert research_workspace[".tradingcodex"] == "deny"
-        assert research_workspace[".tradingcodex/user"] == "write"
+        user_access = "read" if os.name == "nt" else "write"
+        assert research_workspace[".tradingcodex/user"] == user_access
         assert ".tradingcodex/cli.py" not in research_workspace
         assert build_filesystem[":workspace_roots"][".tradingcodex/cli.py"] == "read"
         assert build_filesystem[":workspace_roots"][".tradingcodex/workspace.json"] == "read"
-        assert build_filesystem[":workspace_roots"][".tradingcodex/user"] == "write"
+        assert build_filesystem[":workspace_roots"][".tradingcodex/user"] == user_access
         assert build_filesystem[":workspace_roots"]["."] == "write"
         assert {"manage_strategy", "manage_investment_brain"}.issubset(
             configs[0]["mcp_servers"]["tradingcodex"]["enabled_tools"]
