@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Read deep packaged skill templates on native Windows without requiring
+  system-wide long-path support, preserve the hash-locked calculation
+  requirements as LF on Windows Git checkouts, and pin default managed-runtime
+  provisioning to the bootstrapping CLI version.
+
 ## 2.1.3 - 2026-07-25
 
 - Reduce always-loaded Head Manager and shared source-routing guidance, move

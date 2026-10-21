@@ -12,6 +12,7 @@ import sys
 import tempfile
 import tomllib
 import venv
+from contextlib import contextmanager
 from pathlib import Path, PurePath
 from urllib.error import HTTPError
 from urllib.parse import urljoin
@@ -19,6 +20,19 @@ from urllib.request import build_opener, ProxyHandler
 
 
 LOOPBACK_HTTP_OPENER = build_opener(ProxyHandler({}))
+
+
+@contextmanager
+def native_temporary_directory():
+    directory = tempfile.TemporaryDirectory(prefix="tradingcodex-native-wheel-")
+    try:
+        yield directory.name
+    finally:
+        # Keep ordinary paths in the assertions and generated configuration,
+        # but allow cleanup of installed package descendants beyond MAX_PATH.
+        if os.name == "nt" and not directory.name.startswith("\\\\?\\"):
+            directory.name = "\\\\?\\" + directory.name
+        directory.cleanup()
 
 
 def run(
@@ -142,7 +156,7 @@ def main() -> None:
     if len(wheels) != 1:
         raise SystemExit(f"expected exactly one wheel in {args.wheel_dir}, found {len(wheels)}")
 
-    with tempfile.TemporaryDirectory(prefix="tradingcodex-native-wheel-") as temporary:
+    with native_temporary_directory() as temporary:
         root = Path(temporary).resolve()
         wheel_dir = root / "Wheel Package With Spaces"
         wheel_dir.mkdir()

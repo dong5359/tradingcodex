@@ -1378,7 +1378,7 @@ def ensure_managed_python_runtime(
             raise
         finally:
             if source_snapshot is not None:
-                shutil.rmtree(source_snapshot, ignore_errors=True)
+                shutil.rmtree(_filesystem_path(source_snapshot), ignore_errors=True)
     _validate_generated_python(runtime_python, pythonpath=pythonpath)
     return runtime_python
 
@@ -1511,7 +1511,18 @@ def _managed_python_runtime_key(package_spec: str) -> str:
     return f"tradingcodex-{TRADINGCODEX_VERSION}-{digest.hexdigest()[:16]}"
 
 
+def _filesystem_path(path: Path) -> Path:
+    """Allow deep package I/O on Windows without changing persisted paths."""
+    if os.name != "nt":
+        return path
+    value = str(path.absolute())
+    if not value.startswith("\\\\?\\"):
+        value = "\\\\?\\UNC\\" + value[2:] if value.startswith("\\\\") else "\\\\?\\" + value
+    return Path(value)
+
+
 def _update_local_runtime_source_digest(digest: Any, source: Path) -> None:
+    source = _filesystem_path(source)
     for name in LOCAL_RUNTIME_SOURCE_ROOTS:
         root = source / name
         if root.is_symlink():
@@ -1555,8 +1566,8 @@ def _snapshot_local_runtime_source(
     snapshot = Path(tempfile.mkdtemp(prefix=prefix, dir=destination_parent))
     try:
         for name in LOCAL_RUNTIME_SOURCE_ROOTS:
-            source_path = source / name
-            destination_path = snapshot / name
+            source_path = _filesystem_path(source / name)
+            destination_path = _filesystem_path(snapshot / name)
             if source_path.is_dir():
                 shutil.copytree(
                     source_path,
@@ -1567,7 +1578,7 @@ def _snapshot_local_runtime_source(
                 destination_path.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(source_path, destination_path)
     except Exception:
-        shutil.rmtree(snapshot, ignore_errors=True)
+        shutil.rmtree(_filesystem_path(snapshot), ignore_errors=True)
         raise
     return snapshot
 
@@ -1585,6 +1596,10 @@ def _managed_runtime_install_spec(package_spec: str) -> str:
     package_spec = validate_executable_source(package_spec)
     if executable_source_is_local(package_spec):
         return canonical_executable_source(package_spec, require_local_exists=True)
+    if package_spec == "tradingcodex":
+        # The default update source stays floating, but this runtime must match
+        # the CLI performing the attach (including a pinned outer uvx invocation).
+        return f"tradingcodex=={TRADINGCODEX_VERSION}"
     return package_spec
 
 
@@ -1978,7 +1993,8 @@ def validate_generated_workspace(
 def render_template_modules(modules: list[Module], context: dict[str, str]) -> dict[str, str]:
     rendered: dict[str, str] = {}
     for module in modules:
-        files_dir = module.dir / "files"
+        # pathlib silently skips inaccessible descendants during rglob.
+        files_dir = _filesystem_path(module.dir / "files")
         if not files_dir.exists():
             continue
         for item in sorted(files_dir.rglob("*")):

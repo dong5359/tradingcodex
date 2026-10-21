@@ -1,3 +1,5 @@
 *.sh text eol=lf
 workspace_templates/**/tcx text eol=lf
 *.cmd text eol=crlf
+# These bytes are authenticated by calculation-runtime-lock.json.
+tradingcodex_cli/calculation-runtime-requirements.txt text eol=lf

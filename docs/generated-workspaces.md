@@ -768,7 +768,14 @@ disposable uv cache environment. When canonical `uvx` attach/update runs from
 private virtual environment under
 `<TRADINGCODEX_HOME>/runtime/python/tradingcodex-*`, installs the selected
 package there with copied files, verifies the actual MCP imports, and persists
-that environment instead. For a local source directory, provisioning first
+that environment instead. The bare default `tradingcodex` source installs the
+exact version of the running CLI into that environment, while the recorded
+update source remains floating. Explicit source constraints are preserved and
+the installed version must still match. On Windows, template traversal uses
+extended-length paths so deep packaged skill bundles remain readable when
+system-wide long-path support is disabled.
+
+For a local source directory, provisioning first
 copies only runtime-relevant source into a clean temporary snapshot; ignored
 build, distribution, cache, bytecode, local state, and database products cannot
 reintroduce a file that was deleted from the checkout. Local directories and
