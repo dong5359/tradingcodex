@@ -1,4 +1,4 @@
-# TradingCodex Repository Guide
+# TradingCodex Repository Guid
 
 ## Read Order And Documentation Ownership
 
