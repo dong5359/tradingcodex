@@ -3,7 +3,7 @@
 ## Unreleased
 
 ## 2.1.4rc1 - 2026-10-21
-
+- this version is unofficially, it is customized by current page owner
 - Fix current Codex MCP inheritance: native children return sourced research
   handoffs; the coordinator records source snapshots and research-only evidence
   packs using its actual authenticated identity. Preserve separate approval
