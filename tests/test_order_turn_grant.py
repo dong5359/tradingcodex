@@ -990,7 +990,8 @@ def test_execution_tool_is_visible_only_to_root_head_manager(workspace: Path) ->
         role_config = tomllib.loads(
             (workspace / f".codex/agents/{role}.toml").read_text(encoding="utf-8")
         )
-        assert ORDER_TURN_TOOL not in role_config["mcp_servers"]["tradingcodex"]["enabled_tools"]
+        assert "mcp_servers" not in role_config
+        assert "do not call" in role_config["developer_instructions"]
 
     with pytest.raises(PermissionError, match="not allowed"):
         call_mcp_tool(

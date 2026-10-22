@@ -37,7 +37,6 @@ ARTIFACT_DISCOVERY_TOOLS = frozenset(
         "search_artifact_catalog",
     }
 )
-FIXED_ROLE_MODEL_INSTRUCTIONS = "../prompts/base_instructions/fixed-role.md"
 
 
 @pytest.fixture
@@ -179,9 +178,9 @@ def test_child_briefs_and_artifact_skills_keep_capabilities_and_lineage_distinct
 
     assert "brief every child with that ownership, exact reusable IDs, and the missing slice" in flat_workflow
     assert "no child recollects another owner's complete family" in flat_workflow
-    assert "target owner Artifact ID (append/revise) separately from triggering cross-role Artifact IDs" in flat_workflow
+    assert "parent-recorded Artifact ID (append/revise) separately from triggering cross-role Artifact IDs" in flat_workflow
     assert "If the target should exist but its ID is missing, return `waiting`" in flat_workflow
-    assert "no target ID and an explicit `create new artifact` instruction" in flat_workflow
+    assert "no target ID and an explicit `return a new sourced handoff` instruction" in flat_workflow
     assert "Never print full tool records, scan descriptions, or repeat a schema lookup" in flat_workflow
 
     assert "compact TradingCodex v2 research artifacts" in flat_artifact
@@ -250,7 +249,7 @@ def test_artifact_discovery_is_head_managed_and_fixed_roles_keep_exact_reads() -
     head_tools = set(AGENT_SPECS["head-manager"].mcp_allowlist)
     assert "list_research_artifacts" in head_tools
     assert "get_research_artifact" in head_tools
-    assert "record_source_snapshot" not in head_tools
+    assert "record_source_snapshot" in head_tools
     assert "get_dataset_rows" not in head_tools
     assert {"get_source_snapshot", "export_dataset_csv"}.issubset(head_tools)
     assert "head-manager" in TOOL_REGISTRY["list_research_artifacts"].allowed_roles
@@ -268,12 +267,7 @@ def test_artifact_discovery_is_head_managed_and_fixed_roles_keep_exact_reads() -
     )
     for role in fixed_roles:
         role_text = (role_templates / f"{role}.toml").read_text(encoding="utf-8")
-        enabled_line = next(
-            line for line in role_text.splitlines() if line.startswith("enabled_tools = ")
-        )
-        enabled = set(json.loads(enabled_line.partition(" = ")[2]))
-        assert "get_research_artifact" in enabled
-        assert ARTIFACT_DISCOVERY_TOOLS.isdisjoint(enabled)
+        assert "mcp_servers" not in tomllib.loads(role_text)
 
     numeric_roles = {
         "fundamental-analyst",
@@ -593,7 +587,8 @@ def test_generated_contract_inherits_root_model_and_keeps_role_profiles_optional
     assert "model" not in config_values
     assert "model_reasoning_effort" not in config_values
     assert not (workspace / ".tradingcodex/generated/model-policy-manifest.json").exists()
-    assert 'model_instructions_file = "prompts/base_instructions/head-manager.md"' in config
+    assert "developer_instructions" in tomllib.loads(config)
+    assert "model_instructions_file" not in tomllib.loads(config)
     assert '[features.multi_agent_v2]' in config
     assert 'enabled = true' in config
     assert "max_concurrent_threads_per_session" not in config
@@ -605,7 +600,7 @@ def test_generated_contract_inherits_root_model_and_keeps_role_profiles_optional
     assert "record_artifact_supervisor_loop" not in config
     assert tomllib.loads(role)["model"] == "gpt-5.6-terra"
     assert tomllib.loads(role)["model_reasoning_effort"] == "high"
-    assert "required = true" in role
+    assert "mcp_servers" not in tomllib.loads(role)
     assert "You are the `head-manager` agent" not in fixed_role
     assert "# Role And Safety" in fixed_role
     assert "authenticated TradingCodex MCP" in fixed_role
@@ -633,15 +628,15 @@ def test_generated_contract_inherits_root_model_and_keeps_role_profiles_optional
     assert "Only an unavailable\n   evidence-producing role may use a generic child" in skill
     assert "Do not replace an independent\n   `risk-manager` or `judgment-reviewer` review" in skill
     assert "followup_task" in skill
-    assert '`fork_turns="none"`' in skill
-    assert "let its role TOML supply\n   the fixed model settings" in skill
+    assert "without root-history inheritance" in skill
+    assert "never send an unsupported" in skill
     assert "creates no child. never wait for it" in flat_skill.lower()
     assert "call `wait` only after `spawn_agent` or `followup_task` has returned a live target" in flat_skill.lower()
     assert "otherwise do not call it" in flat_skill.lower()
     assert "targetless native wait" not in flat_skill.lower()
     assert "an empty target list alone is not failure" not in flat_skill.lower()
     assert "child-lifecycle results in this run" in flat_skill
-    assert "Save an authenticated role artifact when evidence changes a conclusion" in skill
+    assert "Record a parent-owned evidence pack" in skill
     assert "Do not save simple facts, status" in flat_skill
     assert "Never narrate the report's table of contents" in flat_skill
     assert "executive-report-quality chat answer" in flat_skill
@@ -669,7 +664,8 @@ def test_generated_contract_inherits_root_model_and_keeps_role_profiles_optional
     for role_path in roles_root.glob("*.toml"):
         role_instructions = role_path.read_text(encoding="utf-8")
         role_config = tomllib.loads(role_instructions)
-        enabled_tools = set(role_config["mcp_servers"]["tradingcodex"]["enabled_tools"])
+        assert "mcp_servers" not in role_config
+        enabled_tools = set(AGENT_SPECS[role_path.stem].mcp_allowlist)
         assert role_config["model"] == "gpt-5.6-terra"
         assert role_config["model_reasoning_effort"] == "high"
         assert role_config.get("agents", {}).get("enabled") is not False
@@ -681,10 +677,8 @@ def test_generated_contract_inherits_root_model_and_keeps_role_profiles_optional
         )
         assert "get_research_artifact" in enabled_tools
         assert ARTIFACT_DISCOVERY_TOOLS.isdisjoint(enabled_tools)
-        assert role_config["model_instructions_file"] == FIXED_ROLE_MODEL_INSTRUCTIONS
-        resolved_instructions = role_path.parent / role_config["model_instructions_file"]
-        assert resolved_instructions.resolve() == fixed_role_path.resolve()
-        assert resolved_instructions.is_file()
+        assert "model_instructions_file" not in role_config
+        assert "You are a fixed-role child" in role_config["developer_instructions"]
         assert "Artifact handoff:" not in role_instructions
 
 
@@ -758,7 +752,7 @@ def test_generated_mcp_allowlists_reference_only_registered_tools(workspace: Pat
     for config_path in config_paths:
         config = tomllib.loads(config_path.read_text(encoding="utf-8"))
         enabled_tools = set(
-            config["mcp_servers"]["tradingcodex"]["enabled_tools"]
+            config.get("mcp_servers", {}).get("tradingcodex", {}).get("enabled_tools", [])
         )
         assert enabled_tools <= TOOL_REGISTRY.keys(), (
             f"{config_path.relative_to(workspace)} references unregistered "
@@ -766,9 +760,13 @@ def test_generated_mcp_allowlists_reference_only_registered_tools(workspace: Pat
         )
 
 
-def test_doctor_requires_fixed_role_base_and_per_role_override(workspace: Path) -> None:
+def test_doctor_requires_embedded_fixed_role_instructions(workspace: Path) -> None:
+    command = (
+        [os.environ.get("COMSPEC", "cmd.exe"), "/d", "/c", str(workspace / "tcx.cmd")]
+        if os.name == "nt" else [str(workspace / "tcx")]
+    )
     doctor = subprocess.run(
-        [str(workspace / "tcx"), "doctor", "--verbose"],
+        [*command, "doctor", "--verbose"],
         cwd=workspace,
         text=True,
         capture_output=True,

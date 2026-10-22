@@ -20,6 +20,32 @@ Start a workflow only for research, valuation, forecasts, recommendations,
 portfolio or risk judgment, order preparation, approval review, or a question
 that needs fresh evidence or more than one distinct expertise.
 
+## Native Child Handoffs
+
+Current Codex children inherit the parent MCP connection. A fixed-role TOML
+cannot establish a separate MCP principal. Give each child a research-only
+brief and ask for sources, dates, relevant excerpts, findings, assumptions,
+confidence, gaps, and reusable IDs. Children return findings without calling
+TradingCodex write tools. Do not interpret a profile name as authentication.
+
+After checking a handoff, Head Manager records its sources using
+`record_source_snapshot`, then stores `artifact_type=evidence_pack` through
+`create_research_artifact` with `status.action_readiness=research-only`, the
+assigned run, and the returned `lineage.source_snapshot_ids`. Preserve the
+specialist's attribution in the report text; omit role/principal overrides.
+Use service-returned times to choose a truthful knowledge cutoff that includes
+the recorded sources. The receipt authenticates Head Manager's recording of
+the handoff, not a separate analyst identity or factual correctness.
+
+Integrate accepted run-local evidence packs in the normal synthesis path.
+Independent research opinions may challenge a conclusion, but a head-manager
+evidence pack cannot satisfy authenticated risk, portfolio, approval, or
+judgment-reviewer requirements. Preserve those gaps when a gated operation
+needs them. Research can finish without asserting order readiness.
+
+These storage rules apply to the workflow below and to role skills that
+otherwise expect an independently authenticated specialist MCP connection.
+
 ## Workflow
 
 1. Preserve the user's outcome, constraints, and exclusions. Ask only when a
@@ -38,7 +64,7 @@ that needs fresh evidence or more than one distinct expertise.
    decision-relevant unknowns, and choose the smallest useful role set. Skip the
    playbook for a narrow fact or recorded order, approval, or execution status.
    Dispatch only for distinct expertise or independent challenge. Use
-   `risk-manager` where its separate risk authority materially improves the
+   `risk-manager` where its independent risk perspective materially improves the
    result. Use `judgment-reviewer` when a recommendation, portfolio/risk
    decision, material conflict, or high-consequence uncertainty benefits from
    adversarial adjudication; do not force it onto narrow facts or requests
@@ -48,16 +74,17 @@ that needs fresh evidence or more than one distinct expertise.
    and no-order boundary; it cannot approve, execute, access secrets, or act as
    a broker. Do not replace an independent
    `risk-manager` or `judgment-reviewer` review with a generic child: return an
-   explicit profile gap as `blocked` or `waiting`. Call `spawn_agent` for an
-   exact profile with its `agent_type`, a compact `message`, `task_name`, and
-   `fork_turns="none"`; let its role TOML supply
-   the fixed model settings. Success requires a live target; correct a rejected
+   explicit profile gap as `blocked` or `waiting`. Use the native delegation tool schema available in this session. Select an
+   exact profile only when the tool supports it; never send an unsupported
+   `agent_type`. Pass a compact brief without root-history inheritance where
+   supported. A generic evidence child receives the same research-only boundary. Success requires a live target; correct a rejected
    spawn only from its error.
 6. Before refetching a reusable data family, check only current-workflow Snapshot/Dataset candidates.
    Give it one owner and brief every child with
    that ownership, exact reusable IDs, and the missing slice. Require reuse of
    supplied IDs; no child recollects another owner's complete family. Tell the
-   owner to load `$tcx-source-gate` and return IDs, not raw output.
+   owner to load `$tcx-source-gate` and return existing IDs or source links,
+   dates, and relevant excerpts. Head Manager records any new snapshots.
 7. Reuse a live child's session with `followup_task` for work it still owns.
    Start another only for a new specialty, unavailable session, or independent
    review; parallelize independent questions. Never claim activity absent from
@@ -66,7 +93,7 @@ that needs fresh evidence or more than one distinct expertise.
    target in this run and only while that child has useful work. Otherwise do
    not call it. Update only on observable material change; a timeout is not
    progress.
-9. Save an authenticated role artifact when evidence changes a conclusion,
+9. Record a parent-owned evidence pack from the sourced handoff when evidence changes a conclusion,
    supports a consequential judgment or handoff, records a material conflict or
    gap, or has future reuse or audit value. Do not save a narrow fact, status,
    temporary exploration, or restatement of one existing artifact.
@@ -77,12 +104,12 @@ that needs fresh evidence or more than one distinct expertise.
 
 1. Compare the result with its brief and causal map; keep only material gaps.
 2. Same owner: use one bounded follow-up via `followup_task`. Label its target
-   owner Artifact ID (append/revise) separately from triggering cross-role
+   handoff's parent-recorded Artifact ID (append/revise) separately from triggering cross-role
    Artifact IDs (consumed evidence), then give the exact delta. If the target
    should exist but its ID is missing, return `waiting`; say `create new
-   artifact` only when that is intended.
+   artifact` only when that is intended; Head Manager performs the write.
 3. New specialty: dispatch its role with the Artifact IDs as triggers, no target
-   ID and an explicit `create new artifact` instruction, plus the causal question
+   ID and an explicit `return a new sourced handoff` instruction, plus the causal question
    and missing evidence. Use independent review for material conflict.
 4. Recheck the changed link. Continue only while an obtainable gap could change
    the result; otherwise synthesize or preserve its state.

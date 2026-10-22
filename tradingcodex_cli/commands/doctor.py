@@ -134,8 +134,8 @@ def _guidance_checks(root: Path) -> list[dict[str, Any]]:
     return [
         path_check(root, "guidance", "AGENTS.md installed", "AGENTS.md", True),
         _codex_cli_runtime_check(),
-        text_check(root, "guidance", "head-manager model instructions file configured", ".codex/config.toml", 'model_instructions_file = "prompts/base_instructions/head-manager.md"', True),
-        text_check(root, "guidance", "head-manager instructions installed", ".codex/prompts/base_instructions/head-manager.md", "You are the `head-manager` for TradingCodex", True),
+        text_check(root, "guidance", "head-manager developer instructions configured", ".codex/config.toml", '# tcx-head-instructions:start', True),
+        text_check(root, "guidance", "head-manager instructions installed", ".codex/prompts/base_instructions/head-manager.md", "At the root of a TradingCodex conversation", True),
         text_check(root, "guidance", "fixed-role base instructions installed", ".codex/prompts/base_instructions/fixed-role.md", "You are a fixed-role child in TradingCodex", True),
         *_launcher_checks(root),
         text_check(root, "guidance", "hooks configured", ".codex/hooks.json", "\"PreToolUse\"", True),
@@ -669,9 +669,7 @@ def _enforcement_checks(root: Path) -> list[dict[str, Any]]:
 
 def _codex_mcp_config_checks(root: Path) -> list[dict[str, Any]]:
     root_mcp = _read_codex_mcp_config(root / ".codex" / "config.toml")
-    risk_mcp = _read_codex_mcp_config(root / ".codex" / "agents" / "risk-manager.toml")
     root_tools = set(root_mcp.get("enabled_tools") or [])
-    risk_tools = set(risk_mcp.get("enabled_tools") or [])
     retired_execution_tools = {
         "submit_approved_order",
         "cancel_submitted_order",
@@ -681,7 +679,8 @@ def _codex_mcp_config_checks(root: Path) -> list[dict[str, Any]]:
     role_mcp_configs: dict[str, dict[str, Any]] = {}
     for agent_path in sorted((root / ".codex" / "agents").glob("*.toml")):
         agent_mcp = _read_codex_mcp_config(agent_path)
-        role_mcp_configs[agent_path.stem] = agent_mcp
+        if agent_mcp:
+            role_mcp_configs[agent_path.stem] = agent_mcp
         enabled = set(agent_mcp.get("enabled_tools") or [])
         exposed = retired_execution_tools & enabled
         if exposed:
@@ -833,14 +832,14 @@ def _codex_mcp_config_checks(root: Path) -> list[dict[str, Any]]:
             "name": "fixed roles exclude raw broker MCP tools",
             "ok": all(raw_broker_tools.isdisjoint(set(config.get("enabled_tools") or [])) for config in role_mcp_configs.values()),
             "codexNative": True,
-            "detail": "fixed-role configs expose no raw broker mutation tools",
+            "detail": "children inherit the root MCP connection; config files do not establish role isolation",
         },
         {
             "layer": "enforcement",
-            "name": "risk-manager MCP approval allowlist configured",
-            "ok": "request_order_approval" in risk_tools and "submit_approved_order" not in risk_tools,
+            "name": "native children do not override MCP identity",
+            "ok": not role_mcp_configs,
             "codexNative": True,
-            "detail": "risk-manager can approve but not submit" if "request_order_approval" in risk_tools and "submit_approved_order" not in risk_tools else "risk-manager approval/submit allowlist mismatch",
+            "detail": "research handoffs are recorded by head-manager; separately authenticated approvals remain unavailable to native children" if not role_mcp_configs else "unsupported child MCP overrides remain; update the workspace",
         },
     ]
 
@@ -1067,7 +1066,7 @@ def _improvement_checks(root: Path) -> list[dict[str, Any]]:
             "improvement",
             f"subagent compact base configured: {subagent}",
             f".codex/agents/{subagent}.toml",
-            'model_instructions_file = "../prompts/base_instructions/fixed-role.md"',
+            '<!-- tcx-child-contract:start -->',
             True,
         ))
         subagent_path = root / ".codex" / "agents" / f"{subagent}.toml"
@@ -1224,4 +1223,10 @@ def _skill_check_path(skill: str) -> str:
 def _mcp_checks(root: Path) -> list[dict[str, Any]]:
     return [
         text_check(root, "mcp", "MCP server instructions installed", ".tradingcodex/mcp/server.py", "not a raw broker proxy or an execution-mutation surface", False),
+        {
+            "layer": "mcp",
+            "name": "coordinator source recording configured",
+            "ok": "record_source_snapshot" in _read_codex_mcp_config(root / ".codex/config.toml").get("enabled_tools", []),
+            "detail": "native children return sourced findings; the shared head-manager transport records them without claiming child authentication",
+        },
     ]

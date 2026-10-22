@@ -187,7 +187,9 @@ also require the disposable-workspace and Codex-native checks documented in
 ## CI And Release Automation
 
 `.github/workflows/ci.yml` is test-only. Parallel Ubuntu jobs run the frontend
-determinism check and the Python 3.11 source/framework gates. It does
+determinism check and the Python 3.11 source/framework gates. A targeted native
+Windows job checks deep package paths, managed-runtime version selection, and
+the exact hash-locked requirements bytes after checkout. It does
 not construct or upload a wheel or source distribution, run release-upgrade or
 native-runtime matrices, or publish anything. Documentation-, guide-, and
 asset-only pushes or pull requests skip this workflow. Source-bearing pull

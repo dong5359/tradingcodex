@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+## 2.1.4rc1 - 2026-10-21
+- this version is unofficially, it is customized by current page owner
+- Fix current Codex MCP inheritance: native children return sourced research
+  handoffs; the coordinator records source snapshots and research-only evidence
+  packs using its actual authenticated identity. Preserve separate approval
+  and independent-review gates.
+- Project child safety into supported developer instructions and remove ignored
+  child MCP overrides. Keep native model instructions intact.
+- Preserve managed versus user OpenBB connections without duplicate TOML tables
+  during workspace updates. Keep protected metadata read-only on Windows to
+  avoid unsupported nested write exceptions; Investor Context CLI edits remain
+  available from the user's terminal.
+
+- Read deep packaged skill templates on native Windows without requiring
+  system-wide long-path support, preserve the hash-locked calculation
+  requirements as LF on Windows Git checkouts, and pin default managed-runtime
+  provisioning to the bootstrapping CLI version.
+
 ## 2.1.3 - 2026-07-25
 
 - Reduce always-loaded Head Manager and shared source-routing guidance, move

@@ -12,7 +12,7 @@ orchestration, handoffs, overlays, and execution separation.
 | Investment Brain plugin | platform-neutral hypotheses, inquiry priorities, causal frames, interpretation, falsifiers, and abstention heuristics | role selection, tools, workflow, memory, policy, approval, execution |
 | Knowledge Wiki | reusable untrusted factual background and explicit agent-maintained Markdown links | current evidence, reasoning instructions, automatic writes, or investment conclusions |
 | Fixed-role base prompt | shared child safety, evidence/handoff invariants, compact artifact reads, and gap handling | provider procedure, specialist identity, cross-role scheduling |
-| Fixed-role TOML | concise specialist identity, unique boundary, web posture, tools, and MCP principal | shared evidence procedure, cross-role scheduling, or model policy |
+| Fixed-role TOML | concise specialist identity, unique boundary, research scope and supported developer instructions | shared evidence procedure, cross-role scheduling, or model policy |
 | Role skills | domain procedure and output quality | role identity or authority |
 | Hooks | compact session health and current-turn authority context, reserved action parsing, proof injection, and TradingCodex-owned safety-gate audit | natural-language routing, run/session ownership, child lifecycle, role selection, generic shell/network policy, or lane/team/DAG selection |
 | Django services/MCP | run provenance, principal/tool checks, artifact lineage, policy/order/approval/broker/execution/audit state; one protected turn-grant consumer plus no raw final mutation | investment research orchestration or model-granted execution authority |
@@ -92,6 +92,29 @@ normalization do not relax flags, identifiers, duplicate detection, mode, or
 the single-effect rule. Grant, mandate, and audit bindings continue to hash the
 original unnormalized prompt.
 
+## Native MCP Inheritance
+
+Current Codex custom agents inherit the parent's MCP servers and permissions.
+Their TOML files cannot rebind `mcp_servers` or establish a specialist principal.
+TradingCodex projects shared child guidance into supported
+`developer_instructions` and keeps its coordinator instructions conditional on
+running at the root. It does not replace the model's native base instructions.
+
+Children return sourced research handoffs. Head Manager records source
+snapshots, then a run-local `evidence_pack` with `research-only` action readiness,
+and synthesizes accepted evidence packs. Receipts retain `head-manager` as the
+actual transport writer. Specialist attribution in report prose is a claim,
+not an independently authenticated service identity. Source storage and a
+valid receipt do not establish factual correctness.
+
+The service rejects unsourced coordinator evidence packs, elevated action
+readiness, forged principals, and attempts to treat these packs as authenticated
+portfolio, risk, or judgment-reviewer inputs. Native child opinions may inform
+research but cannot issue approval receipts or satisfy those separate gates.
+Existing independently authenticated specialist transports and historical
+receipts retain their service semantics. No caller-selected role substitutes
+for transport authentication.
+
 ## Fixed Team
 
 Head Manager coordinates nine fixed analytical and decision-support subagents.
@@ -99,7 +122,7 @@ There is no execution subagent.
 
 | Role | Purpose | Key prohibition |
 | --- | --- | --- |
-| `head-manager` | interpret, coordinate, reassess, synthesize | performing analyst research itself |
+| `head-manager` | interpret, coordinate, reassess, synthesize | claiming independently authenticated specialist authorship |
 | `fundamental-analyst` | business, financials, filings, economics | orders/approval/execution |
 | `technical-analyst` | price, trend, momentum, volume, volatility, liquidity | standalone final recommendation |
 | `news-analyst` | current disclosures, news, chronology, narrative change | rumor-as-fact |
@@ -113,15 +136,14 @@ There is no execution subagent.
 Generated root Codex TOML omits `model` and `model_reasoning_effort`, so
 `head-manager` inherits the user's current Codex model and reasoning settings.
 All nine fixed roles remain pinned directly to `gpt-5.6-terra` with `high`
-reasoning to keep specialist cost and latency balanced. These child TOML
-settings are not a model-policy registry, manifest, rollout control, or doctor
+reasoning to keep specialist cost and latency balanced. These supported model settings are not a model-policy registry, manifest, rollout control, or doctor
 availability state. All use the shared
 `trading-research` profile: ordinary
 user-owned paths outside `trading/` may be used as workflow inputs or outputs,
 while `trading/`, generated controls, credentials, and runtime state remain
 protected. Head Manager receives live web search for planning-only
-reconnaissance, and evidence-producing roles receive it for role-owned research.
-Portfolio, risk, and judgment review explicitly disable it. Final
+reconnaissance, and native children inherit it for role-owned research.
+Native children inherit parent web and tool settings; role guidance narrows their research responsibility without claiming a separate permission boundary. Final
 provider effects are not a role and run through the deterministic service
 gateway rather than an execution model.
 
@@ -234,8 +256,9 @@ does not install, classify, proxy, approve, or audit them.
 
 Use `record_source_snapshot` for every external source. Create a Dataset only
 for reusable structured rows, and bind the resulting Snapshot and Dataset IDs to
-the ResearchArtifact. The six evidence roles alone may receive the direct
-optional OpenBB MCP; Head Manager, portfolio, risk, and judgment roles do not.
+the ResearchArtifact. Native children return sources to the coordinator, which
+records the snapshots and handoffs. Optional OpenBB is configured once in the
+parent and inherited by children.
 The canonical details are in
 [data-sources-and-openbb.md](./data-sources-and-openbb.md).
 
