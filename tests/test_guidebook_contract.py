@@ -89,3 +89,11 @@ def test_investor_context_guide_uses_direct_workspace_updates() -> None:
     assert "Codex updates the workspace-local Investor Context file directly" in page
     assert "need neither a Build turn nor a terminal command" in page
     assert "gives one exact user-terminal command" not in page
+
+
+def test_persona_guide_is_reachable_from_skill_directory_and_improve() -> None:
+    for filename in ("skills.html", "improve.html", "skill-brain.html"):
+        assert 'href="skill-persona.html"' in _html(GUIDEBOOK / filename)
+    page = _html(GUIDEBOOK / "skill-persona.html")
+    assert 'href="skill-brain.html#lifecycle"' in page
+    assert 'href="skill-strategy.html"' in page

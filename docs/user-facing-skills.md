@@ -6,7 +6,7 @@ shape, automate, or review workflows without granting extra authority.
 
 ## Naming Contract
 
-All 33 bundled TradingCodex skills use the `tcx-` namespace. Prefer one word
+All 34 bundled TradingCodex skills use the `tcx-` namespace. Prefer one word
 after the prefix and use at most two words when clarity or safety requires it,
 as in `tcx-order-submit` or `tcx-investor-context`. Folder names, frontmatter
 names, registry ids, projected paths, UI metadata, and explicit `$` invocations
@@ -32,6 +32,7 @@ is not a Head Manager entrypoint.
 | `tcx-memory` | Retrieve prior decisions, replay an historical decision with point-in-time evidence, compare outcomes, or validate a lesson. | Source-bound episodes, replay/review artifacts, lesson status, evidence tier, and next validation needed. |
 | `tcx-strategy` | Design and manage reusable user strategy skills in a direct first-meaningful-line `$tcx-strategy` Research turn. | Validated strategy skill with required sections, status, projection metadata, and user approval posture. |
 | `tcx-brain` | Author and manage user-owned Brain sources plus installed Brain validation, discovery, version, activation, rollback, and removal in a direct first-meaningful-line `$tcx-brain` Research turn. | Privacy-reviewed source action or canonical managed lifecycle result with id, version, status, digests, projection posture, and next step. |
+| `tcx-persona` | Choose an investor lens, adapt it to a personal method, and learn from selected trade reviews. | Personal Brain source, separate Strategy draft when needed, and evidence-linked strength/weakness proposals; see [Investor Personas](investor-personas.md). |
 | `tcx-server` | Viewer/service health, `doctor`, update status, MCP readiness, DB path checks, and startup recovery. | Runtime status, recovery command, viewer URL, update guidance, or blocker reason. |
 | `tcx-build` | Explicit current-turn workspace refresh, managed optional-role-skill lifecycle work, workspace MCP configuration, and connector/provider development. | Validated managed state or connector files, provider metadata, focused validation, reviewable diff, or an exact operator-terminal next step. |
 | `tcx-order-allow` | Explicitly admit at most one approved submit or cancel later in the current root native Codex turn, including a Codex app Scheduled Task turn. | A mode-bound, single-use `OrderTurnGrant`; no immediate broker effect. |

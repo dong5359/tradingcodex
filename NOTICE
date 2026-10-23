@@ -3,6 +3,15 @@ Copyright 2026 TradingCodex Authors
 
 This product includes software developed by the TradingCodex project.
 
+Investor persona references under the tcx-persona skill are adapted from
+dong5359/vibe-investing, commit 15954a68fcf9c5368955f935a899e9c80ad48d5c.
+Those references are MIT licensed, Copyright (c) 2026 monarchjuno.
+The full notice is retained in that skill's references/upstream-license.md
+and copied into every derived persona source.
+The persona source text emitted by scripts/create_persona.py and
+references/review-principles.md in that skill are also MIT licensed,
+Copyright (c) 2026 Persona template contributors; the same copied notice covers them.
+
 Unless a file, directory, or separately distributed artifact states otherwise,
 the source code, generated workspace templates, and project documentation in
 this repository are licensed under the Apache License, Version 2.0.

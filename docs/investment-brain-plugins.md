@@ -31,6 +31,10 @@ editing into a parallel registry or projection path.
 Decision Memory remains workspace-file-native and user-owned. Installing a
 Brain never uploads, rewrites, or packages that memory.
 
+For a curated starting lens and review-driven personal adaptation, use
+[`tcx-persona`](investor-personas.md). It authors ordinary Brain sources and
+reuses this lifecycle; it does not introduce a second registry or agent roster.
+
 This plan deliberately keeps the product Codex-native. TradingCodex supplies
 the durable safety, provenance, plugin, and artifact boundaries; Head Manager
 owns live interpretation and workflow judgment. No server-side semantic router,

@@ -44,6 +44,8 @@ Load the owning skill only when its procedure is needed:
   and execution status.
 - `$tcx-memory`: prior decisions, replay, forecast resolution, postmortems, and
   lesson validation.
+- `$tcx-persona`: investor persona selection, personal method adaptation, and
+  review-driven improvements to a named personal Brain.
 - `$tcx-server`: viewer URL, health, recovery, update readiness, and connector
   status.
 - `$tcx-investor-context`: suitability-context management.

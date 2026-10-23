@@ -49,6 +49,8 @@ into every layer. If two layers disagree, fix the owning `docs/` page first.
   workflow evidence and non-expert output requirements.
 - [User-Facing Skills](user-facing-skills.md) — direct skill entrypoints and
   user-visible responsibilities.
+- [Investor Personas](investor-personas.md) — personal investment lenses and
+  review-driven learning through the existing Brain and Memory owners.
 - [Roles, Skills, And Workflows](roles-skills-and-workflows.md) — agent and
   skill behavior, research routing, and handoffs.
 - [Codex-Native Orchestration](codex-native-orchestration.md) — the durable run

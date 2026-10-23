@@ -1,0 +1,6 @@
+interface:
+  display_name: "TCX Persona"
+  short_description: "Personalize investor lenses and learn from reviews"
+  default_prompt: "$tcx-persona\nHelp me choose a persona, adapt it to my trading method, or improve it from selected reviews."
+policy:
+  allow_implicit_invocation: true

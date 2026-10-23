@@ -256,6 +256,10 @@ path = "../.agents/skills/tcx-brain/SKILL.md"
 enabled = true
 
 [[skills.config]]
+path = "../.agents/skills/tcx-persona/SKILL.md"
+enabled = true
+
+[[skills.config]]
 path = "../.agents/skills/tcx-wiki/SKILL.md"
 enabled = true
 

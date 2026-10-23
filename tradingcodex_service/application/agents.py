@@ -130,6 +130,7 @@ HEAD_MANAGER_SKILLS = (
     "tcx-investor-context",
     "tcx-strategy",
     "tcx-brain",
+    "tcx-persona",
     "tcx-wiki",
     "tcx-order-allow",
     "tcx-order-submit",
@@ -620,6 +621,12 @@ SKILL_SPECS: dict[str, SkillSpec] = {
         "TCX Wiki",
         ("head-manager",),
         risk_tags=("knowledge-wiki",),
+        user_visible=True,
+    ),
+    "tcx-persona": SkillSpec(
+        "tcx-persona",
+        "TCX Persona",
+        ("head-manager",),
         user_visible=True,
     ),
     "tcx-order-allow": SkillSpec(

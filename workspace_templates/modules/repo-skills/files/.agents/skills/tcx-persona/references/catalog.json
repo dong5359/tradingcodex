@@ -1,0 +1,71 @@
+{
+  "repository": "https://github.com/dong5359/vibe-investing",
+  "revision": "15954a68fcf9c5368955f935a899e9c80ad48d5c",
+  "personas": [
+    {
+      "id": "aswath-damodaran",
+      "name": "Aswath Damodaran",
+      "summary": "Valuation narratives, cash flows, growth, risk, and price-implied expectations."
+    },
+    {
+      "id": "ben-graham",
+      "name": "Ben Graham",
+      "summary": "Balance-sheet protection, conservative value, and margin of safety."
+    },
+    {
+      "id": "bill-ackman",
+      "name": "Bill Ackman",
+      "summary": "Business quality, concentrated conviction, catalysts, and governance."
+    },
+    {
+      "id": "cathie-wood",
+      "name": "Cathie Wood",
+      "summary": "Disruptive innovation, adoption curves, and long-duration growth scenarios."
+    },
+    {
+      "id": "charlie-munger",
+      "name": "Charlie Munger",
+      "summary": "Mental models, incentives, business quality, and avoiding preventable mistakes."
+    },
+    {
+      "id": "michael-burry",
+      "name": "Michael Burry",
+      "summary": "Contrarian mispricing, detailed evidence, catalysts, and downside."
+    },
+    {
+      "id": "mohnish-pabrai",
+      "name": "Mohnish Pabrai",
+      "summary": "Simple value opportunities, asymmetric payoffs, and patience."
+    },
+    {
+      "id": "nassim-taleb",
+      "name": "Nassim Taleb",
+      "summary": "Fragility, tail exposure, optionality, and survival under stress."
+    },
+    {
+      "id": "peter-lynch",
+      "name": "Peter Lynch",
+      "summary": "Understandable businesses, company categories, and growth versus price."
+    },
+    {
+      "id": "phil-fisher",
+      "name": "Phil Fisher",
+      "summary": "Qualitative research, management, innovation, and durable growth."
+    },
+    {
+      "id": "rakesh-jhunjhunwala",
+      "name": "Rakesh Jhunjhunwala",
+      "summary": "Long-run business growth, management quality, and valuation discipline."
+    },
+    {
+      "id": "stanley-druckenmiller",
+      "name": "Stanley Druckenmiller",
+      "summary": "Macro regimes, liquidity, price confirmation, and changing conviction."
+    },
+    {
+      "id": "warren-buffett",
+      "name": "Warren Buffett",
+      "summary": "Circle of competence, durable moats, stewardship, and intrinsic value."
+    }
+  ]
+}

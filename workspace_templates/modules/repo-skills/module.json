@@ -24,6 +24,7 @@
       "skill.investor_context",
       "skill.strategy_creator",
       "skill.brain_manager",
+      "skill.investor_personas",
       "skill.knowledge_wiki",
       "skill.build.turn_authorization",
       "skill.synthesize_decision",

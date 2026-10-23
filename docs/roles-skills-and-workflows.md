@@ -663,7 +663,7 @@ while operational diagnosis and recovery remain `tcx-server` responsibilities.
 
 ## Validation
 
-Validate the nine-role fixed roster and projections, 33 skill bundles, absence
+Validate the nine-role fixed roster and projections, 34 skill bundles, absence
 of raw public execution-mutation tools, protected grant-tool proof behavior,
 deterministic native-action and `$tcx-order-allow` hook behavior,
 native role-profile dispatch, bounded evidence fallback, exact independent risk/judgment review,
