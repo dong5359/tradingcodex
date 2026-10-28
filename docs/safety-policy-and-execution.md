@@ -52,8 +52,11 @@ Broker connection invocation is always owned by the Django service layer.
 Codex may draft, explain, classify, and request checks, but it must not call a
 raw broker execution primitive directly.
 
-The requester is transport-bound, not trusted from a request body. A generated
-role MCP instance supplies `TRADINGCODEX_MCP_PRINCIPAL`; a payload principal is
+The requester is transport-bound, not trusted from a request body. An independently configured
+MCP transport supplies `TRADINGCODEX_MCP_PRINCIPAL`; native Codex children
+inherit the root transport and are not separately authenticated. The
+[research handoff contract](roles-skills-and-workflows.md#native-mcp-inheritance)
+preserves that distinction; a payload principal is
 accepted only when it matches that immutable binding. HTTP mutations require a
 bound API principal/key or authenticated staff session. Unsafe Ninja requests
 authenticated by a staff session also require CSRF; an API key remains a

@@ -12,6 +12,7 @@ import sys
 import tempfile
 import tomllib
 import venv
+from contextlib import contextmanager
 from pathlib import Path, PurePath
 from urllib.error import HTTPError
 from urllib.parse import urljoin
@@ -19,6 +20,19 @@ from urllib.request import build_opener, ProxyHandler
 
 
 LOOPBACK_HTTP_OPENER = build_opener(ProxyHandler({}))
+
+
+@contextmanager
+def native_temporary_directory():
+    directory = tempfile.TemporaryDirectory(prefix="tradingcodex-native-wheel-")
+    try:
+        yield directory.name
+    finally:
+        # Keep ordinary paths in the assertions and generated configuration,
+        # but allow cleanup of installed package descendants beyond MAX_PATH.
+        if os.name == "nt" and not directory.name.startswith("\\\\?\\"):
+            directory.name = "\\\\?\\" + directory.name
+        directory.cleanup()
 
 
 def run(
@@ -142,7 +156,7 @@ def main() -> None:
     if len(wheels) != 1:
         raise SystemExit(f"expected exactly one wheel in {args.wheel_dir}, found {len(wheels)}")
 
-    with tempfile.TemporaryDirectory(prefix="tradingcodex-native-wheel-") as temporary:
+    with native_temporary_directory() as temporary:
         root = Path(temporary).resolve()
         wheel_dir = root / "Wheel Package With Spaces"
         wheel_dir.mkdir()
@@ -244,11 +258,12 @@ def main() -> None:
         assert build_filesystem[calculation_roots[0]] == "deny"
         assert research_workspace["trading"] == "read"
         assert research_workspace[".tradingcodex"] == "deny"
-        assert research_workspace[".tradingcodex/user"] == "write"
+        user_access = "read" if os.name == "nt" else "write"
+        assert research_workspace[".tradingcodex/user"] == user_access
         assert ".tradingcodex/cli.py" not in research_workspace
         assert build_filesystem[":workspace_roots"][".tradingcodex/cli.py"] == "read"
         assert build_filesystem[":workspace_roots"][".tradingcodex/workspace.json"] == "read"
-        assert build_filesystem[":workspace_roots"][".tradingcodex/user"] == "write"
+        assert build_filesystem[":workspace_roots"][".tradingcodex/user"] == user_access
         assert build_filesystem[":workspace_roots"]["."] == "write"
         assert {"manage_strategy", "manage_investment_brain"}.issubset(
             configs[0]["mcp_servers"]["tradingcodex"]["enabled_tools"]
@@ -348,6 +363,9 @@ def main() -> None:
         assert build_filesystem[str(attached_python)] == "read"
         for config in configs:
             assert "sandbox_mode" not in config
+            if "mcp_servers" not in config:
+                assert "Your assigned specialist role" in config["developer_instructions"]
+                continue
             mcp = config["mcp_servers"]["tradingcodex"]
             assert Path(mcp["command"]).absolute() == attached_python.absolute()
             assert mcp["args"] == ["-m", "tradingcodex_cli", "mcp", "stdio"]
@@ -362,7 +380,11 @@ def main() -> None:
             env=environment,
         )
         for path in config_paths:
-            updated_mcp = tomllib.loads(path.read_text(encoding="utf-8"))["mcp_servers"]["tradingcodex"]
+            updated_config = tomllib.loads(path.read_text(encoding="utf-8"))
+            if "mcp_servers" not in updated_config:
+                assert "Your assigned specialist role" in updated_config["developer_instructions"]
+                continue
+            updated_mcp = updated_config["mcp_servers"]["tradingcodex"]
             updated_python = Path(updated_mcp["command"])
             assert updated_python.absolute() == attached_python.absolute()
             assert updated_python.is_file()
@@ -440,17 +462,9 @@ print(os.environ['TMPDIR'])
             "None",
             str(scratch),
         ]
-        technical_mcp = next(
-            config["mcp_servers"]["tradingcodex"]
-            for config in configs[1:]
-            if config["mcp_servers"]["tradingcodex"]["env"].get(
-                "TRADINGCODEX_MCP_PRINCIPAL"
-            )
-            == "technical-analyst"
-        )
-        runtime_root = Path(
-            technical_mcp["env"]["TRADINGCODEX_CALCULATION_RUNTIME_ROOT"]
-        )
+        # Calculation service smoke uses explicit in-process service authority.
+        # Native children inherit this root runtime, not a role-specific MCP.
+        runtime_root = Path(calculation_roots[0])
         runtime_manifest = runtime_root / "runtime-manifest.json"
         assert runtime_manifest.is_file()
         prepared_script = scratch / "platform-prepared.py"
