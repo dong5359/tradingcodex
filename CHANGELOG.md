@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Add the repository-local `korean-filing-evidence` user skill, which prioritizes
+  original DART disclosures and excludes blogs as evidence for reported
+  financial figures. The skill is discovered in the source checkout and is not
+  projected automatically into generated workspaces.
+
 ## 2.1.4rc1 - 2026-10-21
 - this version is unofficially, it is customized by current page owner
 - Fix current Codex MCP inheritance: native children return sourced research
