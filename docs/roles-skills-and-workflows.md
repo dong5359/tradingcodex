@@ -405,6 +405,46 @@ unresolved. When the overall foundation is materially insufficient, use a
 reverse-DCF expectation threshold, a labeled scenario screen, or abstain
 instead of manufacturing a precise intrinsic-value target.
 
+### Equity valuation
+
+The canonical [equity valuation method](../workspace_templates/modules/repo-skills/files/.tradingcodex/subagents/skills/valuation-analyst/tcx-valuation/references/equity-valuation.md)
+owns the Damodaran-style story-to-cash-flow approach, Korean DART-first evidence,
+forward estimate construction, comparable-period alignment, and upside/base/
+downside targets with current-evidence-based probabilities and expected value.
+Both the coordinator's valuation briefs and the valuation analyst load that
+same resource. Current intrinsic value, future target date, earnings forecast
+period, and probability assumptions remain distinct. These are analytical
+instructions, not a forecast calibration claim or execution authority.
+
+The resource ships in the existing repo-skills module and reaches generated
+workspaces through the normal package/workspace update path. It does not
+require a host-global user skill or an absolute machine-specific file path.
+
+### Expectations and market recognition
+
+The packaged [TCX Expectations skill](../workspace_templates/modules/repo-skills/files/.agents/skills/tcx-expectations/SKILL.md)
+adds a company-analysis method to the Head Manager skill inventory and generated
+Codex configuration. It compares matched-period own forecasts, published
+consensus, attributable whispers, and conditional price-implied expectations.
+The workflow and valuation analyst route to the same scenario resource, keeping
+operating/estimate acceleration, remaining catalysts, funding, marginal demand,
+and observed market reactions distinct.
+
+Business outcomes and market recognition form a conditional scenario tree with
+joint probabilities. Intrinsic value remains an expectations/downside anchor;
+it does not compel a buy at a discount or prohibit an entry at a premium.
+Entry/exit regions depend on price, horizon, evidence, prospective return and
+loss exposure. Missing whispers or unsupported price bridges remain explicit.
+Source selection and interpretation limits live in the skill's evidence guide.
+
+The bundled expectations analyst brief supplies a bounded specialty to a native
+child. It adds no permanent fixed role, service principal, approval authority,
+or parallel scheduler. Existing specialist evidence is reused. Native Codex
+already owns delegation, so this change adds one discoverable skill and optional
+resource reads without requiring another child or broad data collection on every
+company request. Private source attachments and machine-specific paths are not
+part of the distributed skill.
+
 ## Dataset And Calculation Discipline
 
 Reusable numerical evidence follows search-before-fetch and search-before-

@@ -9,7 +9,14 @@ Use this skill after research evidence exists and the requested universe has a s
 
 Universe method:
 
-- Public equity: choose DCF, comps, reverse DCF, scenario, estimate revision, or event probability methods only when the evidence supports them.
+- Public equity: read [Equity Valuation](references/equity-valuation.md) for the
+  Damodaran-style method, DART-first Korean financial evidence, forward
+  estimates, aligned comparable periods, and probability-weighted targets.
+  Use business-appropriate methods and preserve the evidence limits below.
+- For investment timing or market-price targets, read the shared
+  [expectations scenarios](../../../../../.agents/skills/tcx-expectations/references/scenario-design.md).
+  Keep intrinsic value separate from conditional market recognition; preserve
+  the parent question and existing evidence/calculation responsibilities.
 - Treat a forward per-share DCF as decision-usable when current attributable
   evidence supports the cash-flow base, reinvestment/CAPEX, working-capital
   posture, net debt or cash, diluted shares, and the relevant forecast bridge.

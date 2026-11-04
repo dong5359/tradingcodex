@@ -228,6 +228,10 @@ path = "../.agents/skills/tcx-workflow/SKILL.md"
 enabled = true
 
 [[skills.config]]
+path = "../.agents/skills/tcx-expectations/SKILL.md"
+enabled = true
+
+[[skills.config]]
 path = "../.agents/skills/tcx-memory/SKILL.md"
 enabled = true
 

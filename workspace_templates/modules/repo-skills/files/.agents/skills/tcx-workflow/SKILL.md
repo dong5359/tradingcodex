@@ -20,6 +20,18 @@ Start a workflow only for research, valuation, forecasts, recommendations,
 portfolio or risk judgment, order preparation, approval review, or a question
 that needs fresh evidence or more than one distinct expertise.
 
+For company valuation, read [Equity Valuation](../../../.tradingcodex/subagents/skills/valuation-analyst/tcx-valuation/references/equity-valuation.md)
+when framing the work. Carry its source order, forecast period, target date,
+and scenario/probability requirements into relevant analyst briefs and the
+final synthesis; do not rely on children inheriting the conversation.
+
+For company investment analysis, also apply
+[TCX Expectations](../tcx-expectations/SKILL.md). Compare own forecasts,
+consensus, attributable whispers, and price-implied expectations; distinguish
+business outcomes from conditional market recognition and entry/exit regions.
+Carry the relevant question, horizon, evidence IDs, and method resource into
+bounded child briefs. A valuation discount alone does not establish a buy.
+
 ## Native Child Handoffs
 
 Current Codex children inherit the parent MCP connection. A fixed-role TOML

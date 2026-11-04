@@ -8,6 +8,30 @@
   projected automatically into generated workspaces.
 
 ## 2.1.4rc1 - 2026-10-21
+
+- Maintenance update (2026-11-04): package `tcx-expectations` for company
+  analysis, expectation revisions, remaining catalysts, marginal demand, and
+  market reactions. Separate business outcomes from conditional market
+  recognition and derive evidence-dependent entry/exit regions. Include a
+  reusable native-child brief and data-collection/interpretation guidance;
+  preserve uncertainty and research/execution boundaries. Register the skill
+  for generated workspaces without changing the 2.1.4rc1 package version.
+
+- Maintenance update (2026-11-04): add one packaged equity-valuation method
+  shared by coordinator briefs and the valuation analyst. Use Damodaran-style
+  intrinsic valuation, DART-first Korean reported financials followed by
+  consensus and explicit own estimates, aligned forward comparable periods,
+  and upside/base/downside targets with evidence-based probabilities and a
+  probability-weighted expected value. Keep current value, future target date,
+  and estimate period distinct; preserve evidence and execution boundaries.
+  The package version remains 2.1.4rc1; existing workspaces need a package
+  containing this change and the normal workspace update to receive it.
+
+- Fix GitHub tree creation being misclassified as an order effect when blob
+  documentation names a protected order tool. Exclude only recognized GitHub
+  blob text from effect matching; retain all other argument checks and the
+  original credential/service-ledger checks. Add generated-hook regression cases.
+
 - this version is unofficially, it is customized by current page owner
 - Fix current Codex MCP inheritance: native children return sourced research
   handoffs; the coordinator records source snapshots and research-only evidence
