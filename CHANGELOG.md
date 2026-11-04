@@ -2,6 +2,53 @@
 
 ## Unreleased
 
+- Add the repository-local `korean-filing-evidence` user skill, which prioritizes
+  original DART disclosures and excludes blogs as evidence for reported
+  financial figures. The skill is discovered in the source checkout and is not
+  projected automatically into generated workspaces.
+
+## 2.1.4rc1 - 2026-10-21
+
+- Maintenance update (2026-11-04): package `tcx-expectations` for company
+  analysis, expectation revisions, remaining catalysts, marginal demand, and
+  market reactions. Separate business outcomes from conditional market
+  recognition and derive evidence-dependent entry/exit regions. Include a
+  reusable native-child brief and data-collection/interpretation guidance;
+  preserve uncertainty and research/execution boundaries. Register the skill
+  for generated workspaces without changing the 2.1.4rc1 package version.
+
+- Maintenance update (2026-11-04): add one packaged equity-valuation method
+  shared by coordinator briefs and the valuation analyst. Use Damodaran-style
+  intrinsic valuation, DART-first Korean reported financials followed by
+  consensus and explicit own estimates, aligned forward comparable periods,
+  and upside/base/downside targets with evidence-based probabilities and a
+  probability-weighted expected value. Keep current value, future target date,
+  and estimate period distinct; preserve evidence and execution boundaries.
+  The package version remains 2.1.4rc1; existing workspaces need a package
+  containing this change and the normal workspace update to receive it.
+
+- Fix GitHub tree creation being misclassified as an order effect when blob
+  documentation names a protected order tool. Exclude only recognized GitHub
+  blob text from effect matching; retain all other argument checks and the
+  original credential/service-ledger checks. Add generated-hook regression cases.
+
+- this version is unofficially, it is customized by current page owner
+- Fix current Codex MCP inheritance: native children return sourced research
+  handoffs; the coordinator records source snapshots and research-only evidence
+  packs using its actual authenticated identity. Preserve separate approval
+  and independent-review gates.
+- Project child safety into supported developer instructions and remove ignored
+  child MCP overrides. Keep native model instructions intact.
+- Preserve managed versus user OpenBB connections without duplicate TOML tables
+  during workspace updates. Keep protected metadata read-only on Windows to
+  avoid unsupported nested write exceptions; Investor Context CLI edits remain
+  available from the user's terminal.
+
+- Read deep packaged skill templates on native Windows without requiring
+  system-wide long-path support, preserve the hash-locked calculation
+  requirements as LF on Windows Git checkouts, and pin default managed-runtime
+  provisioning to the bootstrapping CLI version.
+
 ## 2.1.3 - 2026-07-25
 
 - Reduce always-loaded Head Manager and shared source-routing guidance, move

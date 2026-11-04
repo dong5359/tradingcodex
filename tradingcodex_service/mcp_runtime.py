@@ -953,7 +953,7 @@ TOOL_SPECS: tuple[McpToolSpec, ...] = (
     ),
     McpToolSpec(
         name="create_research_artifact",
-        description="Store authenticated workspace-native research. Head Manager uses artifact_type=synthesis_report. Pass run and consumed IDs; the service derives identity, lineage, hashes, and quality state.",
+        description="Store authenticated workspace-native research. Head Manager records sourced child handoffs as research-only evidence_pack, then integrates accepted inputs as synthesis_report. Receipts authenticate the transport writer, not a separate child identity. Pass run and consumed IDs; the service derives identity, lineage, hashes, and quality state.",
         category="research",
         risk_level="write",
         allowed_roles=roles_with_mcp_tool("create_research_artifact"),
@@ -3282,8 +3282,13 @@ def _principal_bound_research_args(
             supplied.append(existing.get(field))
         if any(str(value) != expected_value for value in supplied if value not in (None, "")):
             raise PermissionError(f"research artifact {field} must match the authenticated MCP principal")
-    if role == "head-manager" and artifact_type != "synthesis_report":
-        raise PermissionError("head-manager may create only synthesis_report research artifacts")
+    if role == "head-manager" and artifact_type not in {"synthesis_report", "evidence_pack"}:
+        raise PermissionError("head-manager may create only synthesis_report or research-only evidence_pack artifacts")
+    if role == "head-manager" and artifact_type == "evidence_pack":
+        if args.get("action_readiness") != "research-only":
+            raise PermissionError("head-manager evidence packs must remain research-only")
+        if not args.get("source_snapshot_ids"):
+            raise ValueError("head-manager evidence packs require recorded source_snapshot_ids")
     if role != "head-manager" and artifact_type == "synthesis_report":
         raise PermissionError("only head-manager may create synthesis_report research artifacts")
     retired_bindings = ("plan_hash", "stage_id", "task_id")
@@ -3316,7 +3321,7 @@ def _principal_bound_research_args(
             source,
             existing,
         )
-    if role == "head-manager" and not workflow_binding.get("input_artifact_hashes"):
+    if artifact_type == "synthesis_report" and not workflow_binding.get("input_artifact_hashes"):
         raise ValueError("head-manager synthesis requires at least one run-local input_artifact_id")
     return {
         **canonical_args,

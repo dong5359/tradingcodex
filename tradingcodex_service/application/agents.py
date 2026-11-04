@@ -123,6 +123,7 @@ ANTI_OVERFIT_VALIDATION_ROLES = (
 HEAD_MANAGER_SKILLS = (
     "tcx-plan",
     "tcx-workflow",
+    "tcx-expectations",
     "tcx-memory",
     "tcx-automate",
     "tcx-server",
@@ -180,6 +181,7 @@ AGENT_SPECS: dict[str, AgentSpec] = {
             *CALCULATION_CARD_DISCOVERY,
             "append_research_artifact_version",
             "export_research_artifact_md",
+            "record_source_snapshot",
             "get_source_snapshot",
             *EXTERNAL_DATA_EXPORT,
             "create_research_spec",
@@ -595,6 +597,7 @@ CORE_SKILL_NAME_PATTERN = re.compile(r"^tcx-[a-z0-9]+(?:-[a-z0-9]+)?$")
 SKILL_SPECS: dict[str, SkillSpec] = {
     "tcx-plan": SkillSpec("tcx-plan", "TCX Plan", ("head-manager",), user_visible=True),
     "tcx-workflow": SkillSpec("tcx-workflow", "TCX Workflow", ("head-manager",), user_visible=True),
+    "tcx-expectations": SkillSpec("tcx-expectations", "TCX Expectations", ("head-manager",), user_visible=True),
     "tcx-memory": SkillSpec("tcx-memory", "TCX Memory", ("head-manager",), user_visible=True),
     "tcx-automate": SkillSpec("tcx-automate", "TCX Automate", ("head-manager",), user_visible=True),
     "tcx-server": SkillSpec("tcx-server", "TCX Server", ("head-manager",), user_visible=True),
@@ -1653,8 +1656,12 @@ def _project_agent_toml(root: Path, role: str, skills: list[str], additional_ins
     text = path.read_text(encoding="utf-8")
     marker = "[[skills.config]]"
     body = text[: text.find(marker)].rstrip() if marker in text else text.rstrip()
+    shared_path = root / ".codex/prompts/base_instructions/fixed-role.md"
+    shared = shared_path.read_text(encoding="utf-8").strip()
+    start, end = "<!-- tcx-child-contract:start -->", "<!-- tcx-child-contract:end -->"
+    body = re.sub(re.escape(start) + r".*?" + re.escape(end) + r"\s*", "", body, flags=re.S)
+    body = re.sub(r'developer_instructions\s*=\s*"""\s*', lambda _match: 'developer_instructions = """\n' + start + "\n" + _escape_toml_multiline_basic(shared) + "\n" + end + "\n\n", body, count=1)
     body = _replace_developer_instructions(body, additional_instructions, _render_role_skill_source_block(root, role, skills))
-    body = _replace_tradingcodex_enabled_tools(body, AGENT_SPECS[role].mcp_allowlist)
     rendered = body + "\n\n" + _render_role_skill_config_blocks(root, role, skills)
     _atomic_write_text(path, rendered.rstrip() + "\n")
 
@@ -1692,6 +1699,12 @@ def _project_head_manager_prompt(root: Path, additional_instructions: str = "") 
         text += "\n\n" + _render_additional_instruction_block(additional_instructions).rstrip()
     text += "\n\n" + _render_core_extension_boundary()
     _atomic_write_text(path, text.rstrip() + "\n")
+    config_path = root / ".codex/config.toml"
+    config = config_path.read_text(encoding="utf-8")
+    start, end = "# tcx-head-instructions:start", "# tcx-head-instructions:end"
+    block = start + "\ndeveloper_instructions = " + json.dumps(text, ensure_ascii=False) + "\n" + end
+    config = _replace_or_insert_marked_block(config, start, end, block, before="[permissions.trading-research]")
+    _atomic_write_text(config_path, config)
 
 
 def _replace_developer_instructions(
@@ -1750,7 +1763,7 @@ def _render_role_skill_source_block(root: Path, role: str, skills: list[str]) ->
         lines.extend(
             [
                 "",
-                "Store the final report with `create_research_artifact`, the assigned opaque `workflow_run_id`, and exact consumed IDs. The service owns durable files and derived provenance. Return its path, hash, summary, confidence, and gaps; if storage is unavailable, stop as `waiting_for_artifact_storage`.",
+                "Return a sourced research handoff to the parent: assigned workflow_run_id, exact consumed IDs, source URLs and dates, findings, assumptions, confidence, and gaps. The parent records source snapshots and a head-manager evidence_pack. Inherited MCP access is not a separate role identity; do not attempt role-authored storage or claim an authenticated specialist receipt.",
             ]
         )
     lines.extend(["", ROLE_SKILL_SOURCE_END])
@@ -1879,7 +1892,7 @@ def _render_marked_block(start: str, body: str, end: str) -> str:
 def _replace_or_insert_marked_block(text: str, start: str, end: str, block: str, *, before: str | None = None) -> str:
     if start in text and end in text:
         pattern = re.compile(rf"{re.escape(start)}.*?{re.escape(end)}", re.S)
-        return pattern.sub(block, text)
+        return pattern.sub(lambda _match: block, text)
     if before and before in text:
         index = text.find(before)
         return text[:index].rstrip() + "\n\n" + block + "\n\n" + text[index:]

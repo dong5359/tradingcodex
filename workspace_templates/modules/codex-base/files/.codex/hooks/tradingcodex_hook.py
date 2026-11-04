@@ -528,7 +528,7 @@ def handle_order_turn_grant_tool(event: str, payload: dict) -> None:
 def native_tool_block_reason(payload: dict) -> str:
     tool_name = payload_tool_name(payload).lower()
     tool_input = payload["tool_input"]
-    serialized = json.dumps(tool_input, ensure_ascii=False)
+    serialized = json.dumps(order_effect_arguments(tool_name, tool_input), ensure_ascii=False)
     if any(SECRET_PATH.search(value) for value in string_values(tool_input)):
         return "TradingCodex native tools cannot read or write secret material"
     if any(SERVICE_OWNED_PATH.search(value) for value in string_values(tool_input)):
@@ -539,6 +539,37 @@ def native_tool_block_reason(payload: dict) -> str:
     if DIRECT_ORDER_OR_BROKER.search(f"{tool_name} {serialized}"):
         return "Direct broker and order effects are blocked; use the canonical TradingCodex service gate"
     return ""
+
+
+def order_effect_arguments(tool_name: str, tool_input: dict) -> dict:
+    """Separate GitHub blob text from effect-bearing arguments.
+
+    Blob content is stored as repository data, not executed by create_tree.
+    Keep every other field, unknown shape, and tool subject to the usual gate.
+    Credential and service-owned-path checks still inspect the original input.
+    """
+    if tool_name not in {
+        "mcp__codex_apps__github__create_tree",
+        "mcp__codex_apps__github_create_tree",
+    }:
+        return tool_input
+    elements = tool_input.get("tree_elements")
+    if not isinstance(elements, list):
+        return tool_input
+    return {
+        **tool_input,
+        "tree_elements": [
+            {key: value for key, value in element.items() if key != "content"}
+            if (
+                isinstance(element, dict)
+                and element.get("type") == "blob"
+                and isinstance(element.get("path"), str)
+                and isinstance(element.get("content"), str)
+            )
+            else element
+            for element in elements
+        ],
+    }
 
 
 def is_external_evidence_tool(tool_name: str) -> bool:

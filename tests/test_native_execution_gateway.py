@@ -486,10 +486,10 @@ def test_generated_hook_covers_current_exec_tool_names_and_disables_unified_exec
         "valuation-analyst",
     ):
         role_config = tomllib.loads((workspace / f".codex/agents/{role}.toml").read_text(encoding="utf-8"))
-        assert role_config["web_search"] == "live"
+        assert "web_search" not in role_config
     for role in ("portfolio-manager", "risk-manager", "judgment-reviewer"):
         role_config = tomllib.loads((workspace / f".codex/agents/{role}.toml").read_text(encoding="utf-8"))
-        assert role_config["web_search"] == "disabled"
+        assert "web_search" not in role_config
     assert "sandbox_mode" not in config
     research = config["permissions"]["trading-research"]
     build = config["permissions"]["trading-build"]
@@ -499,7 +499,7 @@ def test_generated_hook_covers_current_exec_tool_names_and_disables_unified_exec
     assert research["filesystem"][":workspace_roots"][".git"] == "read"
     assert research["filesystem"][":workspace_roots"][".gitignore"] == "read"
     assert research["filesystem"][":workspace_roots"][".agents"] == "read"
-    assert research["filesystem"][":workspace_roots"][".tradingcodex/user"] == "write"
+    assert research["filesystem"][":workspace_roots"][".tradingcodex/user"] == ("read" if os.name == "nt" else "write")
     assert research["filesystem"][":workspace_roots"]["AGENTS.md"] == "read"
     assert research["filesystem"][":workspace_roots"]["tcx"] == "read"
     assert research["filesystem"][":workspace_roots"]["tcx.cmd"] == "read"
@@ -517,7 +517,7 @@ def test_generated_hook_covers_current_exec_tool_names_and_disables_unified_exec
     assert build["filesystem"][":workspace_roots"]["."] == "write"
     assert build["filesystem"][":workspace_roots"][".tradingcodex/cli.py"] == "read"
     assert build["filesystem"][":workspace_roots"][".tradingcodex/workspace.json"] == "read"
-    assert build["filesystem"][":workspace_roots"][".tradingcodex/user"] == "write"
+    assert build["filesystem"][":workspace_roots"][".tradingcodex/user"] == ("read" if os.name == "nt" else "write")
     assert build["filesystem"][":workspace_roots"]["trading/reports"] == "deny"
     assert build["network"] == {
         "enabled": True,

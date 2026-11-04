@@ -115,10 +115,10 @@ def test_cli_hook_dispatch_preserves_standard_input_and_output(
     }
 
 
-def test_v2_package_metadata_has_one_stable_version_source() -> None:
+def test_v2_package_metadata_has_one_version_source() -> None:
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
 
-    assert TRADINGCODEX_VERSION == "2.1.3"
+    assert TRADINGCODEX_VERSION == "2.1.4rc1"
     assert str(Version(TRADINGCODEX_VERSION)) == TRADINGCODEX_VERSION
     assert project["project"]["dynamic"] == ["version"]
     assert "version" not in project["project"]
@@ -724,7 +724,7 @@ def test_normal_github_uploads_do_not_build_or_deploy_release_artifacts() -> Non
     pages = yaml.safe_load(
         (ROOT / ".github/workflows/deploy-user-guide.yml").read_text(encoding="utf-8")
     )
-    assert set(ci["jobs"]) == {"python", "frontend"}
+    assert set(ci["jobs"]) == {"python", "frontend", "windows-bootstrap"}
     all_ci_steps = [step for job in ci["jobs"].values() for step in job["steps"]]
     ci_steps = "\n".join(str(step.get("run", "")) for step in all_ci_steps)
     ci_uses = "\n".join(str(step.get("uses", "")) for step in all_ci_steps)

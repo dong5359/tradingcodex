@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import tomllib
 from pathlib import Path
 
@@ -9,7 +10,7 @@ from tradingcodex_service.application.data_sources import disable_openbb, enable
 from tradingcodex_service.mcp_runtime import TOOL_REGISTRY
 
 
-def test_openbb_is_a_direct_optional_evidence_role_projection(tmp_path: Path) -> None:
+def test_openbb_is_a_direct_optional_inherited_projection(tmp_path: Path) -> None:
     root = tmp_path / "workspace"
     bootstrap_workspace(root)
 
@@ -19,7 +20,8 @@ def test_openbb_is_a_direct_optional_evidence_role_projection(tmp_path: Path) ->
     for role in RESEARCH_ROLES:
         assert "tcx-openbb" not in AGENT_SPECS[role].builtin_skills
         config = tomllib.loads((root / f".codex/agents/{role}.toml").read_text(encoding="utf-8"))
-        openbb = config["mcp_servers"]["openbb"]
+        assert "mcp_servers" not in config
+        openbb = tomllib.loads((root / ".codex/config.toml").read_text(encoding="utf-8"))["mcp_servers"]["openbb"]
         assert openbb["command"] == "uvx"
         assert openbb["args"] == [
             "--from", "openbb-mcp-server", "--with", "openbb", "openbb-mcp",
@@ -73,8 +75,10 @@ def test_investor_context_uses_native_workspace_file_edits(tmp_path: Path) -> No
     assert "do not add an MCP service" in skill_text
     assert "terminal handoff" not in skill_text
     assert "User-Terminal Commands" not in skill_text
-    assert config["permissions"]["trading-research"]["filesystem"][":workspace_roots"][".tradingcodex/user"] == "write"
-    assert config["permissions"]["trading-build"]["filesystem"][":workspace_roots"][".tradingcodex/user"] == "write"
+    for profile in ("trading-research", "trading-build"):
+        roots = config["permissions"][profile]["filesystem"][":workspace_roots"]
+        assert roots[".tradingcodex"] == "deny"
+        assert roots[".tradingcodex/user"] == ("read" if os.name == "nt" else "write")
 
 
 def test_openbb_enable_projects_env_names_only(tmp_path: Path) -> None:
@@ -83,7 +87,7 @@ def test_openbb_enable_projects_env_names_only(tmp_path: Path) -> None:
     enable_openbb(root, ["FMP_API_KEY"])
     bootstrap_workspace(root, update=True)
 
-    config = tomllib.loads((root / ".codex/agents/fundamental-analyst.toml").read_text(encoding="utf-8"))
+    config = tomllib.loads((root / ".codex/config.toml").read_text(encoding="utf-8"))
     assert config["mcp_servers"]["openbb"]["enabled"] is True
     assert config["mcp_servers"]["openbb"]["env_vars"] == ["FMP_API_KEY"]
 
@@ -95,5 +99,22 @@ def test_openbb_explicit_disable_survives_workspace_update(tmp_path: Path) -> No
 
     bootstrap_workspace(root, update=True)
 
-    config = tomllib.loads((root / ".codex/agents/fundamental-analyst.toml").read_text(encoding="utf-8"))
+    config = tomllib.loads((root / ".codex/config.toml").read_text(encoding="utf-8"))
     assert config["mcp_servers"]["openbb"]["enabled"] is False
+
+
+def test_update_preserves_user_openbb_instead_of_duplicate_default(tmp_path: Path) -> None:
+    root = tmp_path / "workspace"
+    bootstrap_workspace(root)
+    path = root / ".codex/config.toml"
+    text = path.read_text(encoding="utf-8")
+    start = text.index("# BEGIN TradingCodex managed OpenBB")
+    end = text.index("# END TradingCodex managed OpenBB") + len("# END TradingCodex managed OpenBB")
+    custom = '[mcp_servers.openbb]\nurl = "https://example.test/user-openbb"\nenabled = false\n'
+    path.write_text(text[:start] + custom + text[end:], encoding="utf-8")
+    bootstrap_workspace(root, update=True)
+    bootstrap_workspace(root, update=True)
+    config = tomllib.loads(path.read_text(encoding="utf-8"))
+    assert config["mcp_servers"]["openbb"] == {
+        "url": "https://example.test/user-openbb", "enabled": False,
+    }

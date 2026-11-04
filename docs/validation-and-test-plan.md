@@ -168,8 +168,7 @@ Keep source tests small and contract-focused:
   payload/excerpt;
 - Datasets retain all used structured rows and can be queried in bounded pages;
 - ResearchArtifacts bind exact Snapshot and Dataset IDs;
-- enabling OpenBB projects the direct, optional, non-required upstream MCP only
-  to the six evidence roles, with environment-variable names but no values; and
+- enabling OpenBB projects the direct, optional, non-required upstream MCP in the parent config inherited by native children, with environment-variable names but no values; and
 - disabled or unavailable OpenBB does not affect ordinary workspace bootstrap.
 
 No test suite should emulate provider routing, OpenBB discovery, compatibility,

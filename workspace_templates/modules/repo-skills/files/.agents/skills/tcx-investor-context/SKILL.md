@@ -13,6 +13,13 @@ This is an ordinary user-owned workspace file. Read and update it with native
 workspace file tools; do not add an MCP service or hand routine changes to a
 terminal command.
 
+Windows exception: the generated sandbox exposes this subtree as read-only
+because the Windows backend cannot reopen a writable child of protected
+metadata. Prepare the confirmed change and provide the corresponding
+`tcx.cmd investor-context` command for the user's terminal. Do not broaden
+permissions or claim the change was saved. Other platforms use the native
+file procedure below.
+
 ## Procedure
 
 1. Read `.tradingcodex/user/investor-context.md` when it exists. Treat a missing

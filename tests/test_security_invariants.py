@@ -916,15 +916,14 @@ def test_generated_roles_expose_no_execution_mutation_tools(tmp_path: Path) -> N
     workspace = tmp_path / "role-tools-workspace"
     bootstrap_workspace(workspace)
     portfolio = tomllib.loads((workspace / ".codex" / "agents" / "portfolio-manager.toml").read_text(encoding="utf-8"))
-    portfolio_tools = set(portfolio["mcp_servers"]["tradingcodex"]["enabled_tools"])
-    assert "discard_draft_order" in portfolio_tools
+    assert "mcp_servers" not in portfolio
     retired_tools = {"submit_approved_order", "cancel_submitted_order", "refresh_broker_order_status"}
     configs = [workspace / ".codex" / "config.toml", *sorted((workspace / ".codex" / "agents").glob("*.toml"))]
     for config_path in configs:
         config = tomllib.loads(config_path.read_text(encoding="utf-8"))
-        assert retired_tools.isdisjoint(config["mcp_servers"]["tradingcodex"]["enabled_tools"])
+        assert retired_tools.isdisjoint(config.get("mcp_servers", {}).get("tradingcodex", {}).get("enabled_tools", []))
     assert not (workspace / ".codex" / "agents" / "execution-operator.toml").exists()
     assert (workspace / ".agents" / "skills" / "tcx-order-allow" / "SKILL.md").is_file()
     assert (workspace / ".agents" / "skills" / "tcx-order-submit" / "SKILL.md").is_file()
     assert (workspace / ".agents" / "skills" / "tcx-order-cancel" / "SKILL.md").is_file()
-    assert portfolio["mcp_servers"]["tradingcodex"]["env"]["TRADINGCODEX_MCP_PRINCIPAL"] == "portfolio-manager"
+    assert "separate\nservice credential" in portfolio["developer_instructions"]

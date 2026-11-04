@@ -1316,6 +1316,65 @@ def test_bare_package_name_never_becomes_local_from_cwd(
     )
 
 
+def test_default_managed_runtime_matches_bootstrapping_version(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(generator, "TRADINGCODEX_VERSION", "2.1.2")
+    assert generator._managed_runtime_install_spec("tradingcodex") == "tradingcodex==2.1.2"
+
+
+@pytest.mark.parametrize("source", [
+    "tradingcodex==2.1.1",
+    "tradingcodex>=2.1",
+    "https://downloads.example.test/tradingcodex.whl",
+])
+def test_explicit_managed_runtime_source_is_preserved(source: str) -> None:
+    assert generator._managed_runtime_install_spec(source) == source
+
+
+@pytest.mark.skipif(os.name != "nt", reason="native Windows extended paths")
+def test_render_templates_beyond_windows_max_path(tmp_path: Path) -> None:
+    module_dir = tmp_path / ("runtime-" + "x" * 80) / ("package-" + "y" * 80)
+    relative = ".tradingcodex/subagents/skills/judgment-reviewer/tcx-judgment/agents/openai.yaml"
+    extended = Path("\\\\?\\" + str(module_dir.absolute()))
+    source = extended / "files" / relative
+    assert len(str(source)) > 260
+    source.parent.mkdir(parents=True)
+    source.write_text("interface:\n  display_name: TCX Judgment\n", encoding="utf-8")
+    try:
+        for root in (module_dir, extended):
+            module = generator.Module("repo-skills", "", root, {})
+            assert render_template_modules([module], {}) == {
+                relative: "interface:\n  display_name: TCX Judgment\n",
+            }
+    finally:
+        shutil.rmtree(extended)
+
+
+@pytest.mark.skipif(os.name != "nt", reason="native Windows extended paths")
+def test_long_source_snapshot_and_digest_preserve_deep_files(tmp_path: Path) -> None:
+    source = tmp_path / "source"
+    relative = "workspace_templates/modules/repo-skills/files/" + "nested/" * 30 + "openai.yaml"
+    deep_file = generator._filesystem_path(source / relative)
+    deep_file.parent.mkdir(parents=True)
+    deep_file.write_text("first\n", encoding="utf-8")
+    snapshot = None
+    try:
+        before = hashlib.sha256()
+        generator._update_local_runtime_source_digest(before, source)
+        snapshot = generator._snapshot_local_runtime_source(source, tmp_path)
+        assert generator._filesystem_path(snapshot / relative).read_text(encoding="utf-8") == "first\n"
+        copied = hashlib.sha256()
+        generator._update_local_runtime_source_digest(copied, snapshot)
+        assert copied.hexdigest() == before.hexdigest()
+        deep_file.write_text("changed\n", encoding="utf-8")
+        after = hashlib.sha256()
+        generator._update_local_runtime_source_digest(after, source)
+        assert before.hexdigest() != after.hexdigest()
+    finally:
+        shutil.rmtree(generator._filesystem_path(source))
+        if snapshot is not None:
+            shutil.rmtree(generator._filesystem_path(snapshot))
+
+
 def test_native_windows_file_url_is_canonicalized_without_a_rooted_drive_path() -> None:
     assert canonical_executable_source(
         "file:///C:/Program%20Files/TradingCodex/tradingcodex.whl",
@@ -1404,7 +1463,7 @@ def test_generated_workspace_serializes_spaces_and_package_metacharacters(
     assert parsed[0]["features"]["network_proxy"] is True
     assert parsed[0]["default_permissions"] == "trading-research"
     assert "sandbox_mode" not in parsed[0]
-    assert all("sandbox_mode" not in config for config in parsed)
+    assert all("sandbox_mode" not in config for config in parsed if "mcp_servers" in config)
     assert parsed[0]["permissions"]["trading-research"]["extends"] == ":workspace"
     assert parsed[0]["permissions"]["trading-build"]["extends"] == ":workspace"
     research_workspace = parsed[0]["permissions"]["trading-research"]["filesystem"][":workspace_roots"]
@@ -1524,12 +1583,12 @@ def test_generated_workspace_serializes_spaces_and_package_metacharacters(
     }
     assert all(
         config["mcp_servers"]["tradingcodex"]["cwd"] == str(workspace.resolve())
-        for config in parsed
+        for config in parsed if "mcp_servers" in config
     )
     assert all(
         config["mcp_servers"]["tradingcodex"]["env"]["TRADINGCODEX_WORKSPACE_ROOT"]
         == str(workspace.resolve())
-        for config in parsed
+        for config in parsed if "mcp_servers" in config
     )
     assert root_mcp["env"]["TRADINGCODEX_HOME"] == str(home.resolve())
     assert root_mcp["env"]["TRADINGCODEX_HOME_SOURCE"] == "environment_override"
@@ -1540,7 +1599,7 @@ def test_generated_workspace_serializes_spaces_and_package_metacharacters(
     assert parsed[0]["permissions"]["trading-build"]["filesystem"][str(attached_python.parent.parent)] == "read"
     assert parsed[0]["permissions"]["trading-build"]["filesystem"][str(attached_python)] == "read"
     assert root_mcp["args"] == ["-m", "tradingcodex_cli", "mcp", "stdio"]
-    assert all(config["mcp_servers"]["tradingcodex"]["required"] is True for config in parsed)
+    assert all(config["mcp_servers"]["tradingcodex"]["required"] is True for config in parsed if "mcp_servers" in config)
     workspace_config = yaml.safe_load((workspace / ".tradingcodex" / "config.yaml").read_text(encoding="utf-8"))
     assert workspace_config["service"]["default_db"] == str(home.resolve() / "state" / "tradingcodex.sqlite3")
     hooks = json.loads((workspace / ".codex" / "hooks.json").read_text(encoding="utf-8"))
@@ -1576,7 +1635,11 @@ def test_local_source_mcp_uses_attached_python_without_uv_cache(
     configs = [workspace / ".codex/config.toml", *sorted((workspace / ".codex/agents").glob("*.toml"))]
     expected_python = managed_python_runtime_path(runtime_home, str(source))
     for path in configs:
-        mcp = tomllib.loads(path.read_text(encoding="utf-8"))["mcp_servers"]["tradingcodex"]
+        config = tomllib.loads(path.read_text(encoding="utf-8"))
+        if "mcp_servers" not in config:
+            assert "name" in config
+            continue
+        mcp = config["mcp_servers"]["tradingcodex"]
         assert Path(mcp["command"]).absolute() == expected_python.absolute()
         assert Path(mcp["command"]).is_file()
         assert mcp["args"] == ["-m", "tradingcodex_cli", "mcp", "stdio"]
@@ -1649,7 +1712,11 @@ def test_local_source_update_carries_prior_runtime_privately(
 
     configs = [workspace / ".codex/config.toml", *sorted((workspace / ".codex/agents").glob("*.toml"))]
     for path in configs:
-        command = tomllib.loads(path.read_text(encoding="utf-8"))["mcp_servers"]["tradingcodex"]["command"]
+        config = tomllib.loads(path.read_text(encoding="utf-8"))
+        if "mcp_servers" not in config:
+            assert "name" in config
+            continue
+        command = config["mcp_servers"]["tradingcodex"]["command"]
         assert command == prior_python
         assert Path(command).is_file()
         assert generated_python_path_is_ephemeral(command) is False
@@ -2007,9 +2074,11 @@ def test_real_custom_source_attach_patch_update_and_same_version_refresh(
     ]
     assert len(config_paths) == 10
     for config_path in config_paths:
-        mcp = tomllib.loads(config_path.read_text(encoding="utf-8"))["mcp_servers"][
-            "tradingcodex"
-        ]
+        config = tomllib.loads(config_path.read_text(encoding="utf-8"))
+        if "mcp_servers" not in config:
+            assert "name" in config
+            continue
+        mcp = config["mcp_servers"]["tradingcodex"]
         projected_python = Path(mcp["command"])
         assert projected_python == third_python
         assert projected_python.is_file()
@@ -2057,6 +2126,9 @@ def test_uv_cache_removal_leaves_launchers_and_all_role_mcp_runnable(
     assert len(configs) == 10
     parsed = [tomllib.loads(path.read_text(encoding="utf-8")) for path in configs]
     for config in parsed:
+        if "mcp_servers" not in config:
+            assert "name" in config
+            continue
         mcp = config["mcp_servers"]["tradingcodex"]
         assert Path(mcp["command"]).absolute() == managed_python.absolute()
         assert Path(mcp["command"]).is_file()
@@ -2075,6 +2147,9 @@ def test_uv_cache_removal_leaves_launchers_and_all_role_mcp_runnable(
 
     request = '{"jsonrpc":"2.0","id":1,"method":"tools/list"}\n'
     for config in parsed:
+        if "mcp_servers" not in config:
+            assert "name" in config
+            continue
         mcp = config["mcp_servers"]["tradingcodex"]
         environment = {**os.environ, **{str(key): str(value) for key, value in mcp["env"].items()}}
         environment.pop("TRADINGCODEX_PYTHON", None)
@@ -2198,14 +2273,14 @@ def test_doctor_rejects_relative_mcp_workspace_binding(monkeypatch: pytest.Monke
     assert "head-manager" in binding["detail"]
 
 
-def test_doctor_requires_mcp_initialization_for_every_fixed_role(
+def test_doctor_requires_mcp_initialization_for_inherited_root_connection(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
     workspace = tmp_path / "workspace"
     monkeypatch.setenv("TRADINGCODEX_HOME", str(tmp_path / "home"))
     bootstrap_workspace(workspace)
-    role_path = workspace / ".codex/agents/fundamental-analyst.toml"
+    role_path = workspace / ".codex/config.toml"
     role_config = role_path.read_text(encoding="utf-8")
     assert "required = true" in role_config
     role_path.write_text(role_config.replace("required = true\n", "", 1), encoding="utf-8")
@@ -2250,11 +2325,11 @@ def test_windows_drive_paths_render_as_valid_toml_yaml_json(tmp_path: Path) -> N
     configs = [tmp_path / ".codex" / "config.toml", *sorted((tmp_path / ".codex" / "agents").glob("*.toml"))]
     parsed = [tomllib.loads(path.read_text(encoding="utf-8")) for path in configs]
     assert parsed[0]["mcp_servers"]["tradingcodex"]["env"]["TRADINGCODEX_HOME"] == raw["TRADINGCODEX_HOME"]
-    assert all(config["mcp_servers"]["tradingcodex"]["cwd"] == raw["TRADINGCODEX_WORKSPACE_ROOT"] for config in parsed)
+    assert all(config["mcp_servers"]["tradingcodex"]["cwd"] == raw["TRADINGCODEX_WORKSPACE_ROOT"] for config in parsed if "mcp_servers" in config)
     assert all(
         config["mcp_servers"]["tradingcodex"]["env"]["TRADINGCODEX_WORKSPACE_ROOT"]
         == raw["TRADINGCODEX_WORKSPACE_ROOT"]
-        for config in parsed
+        for config in parsed if "mcp_servers" in config
     )
     calculation_roles = {
         "fundamental-analyst",
@@ -2269,8 +2344,7 @@ def test_windows_drive_paths_render_as_valid_toml_yaml_json(tmp_path: Path) -> N
         for path in sorted((tmp_path / ".codex" / "agents").glob("*.toml"))
     }
     assert all(
-        role_configs[role]["mcp_servers"]["tradingcodex"]["env"]["TRADINGCODEX_SCRATCH"]
-        == raw["TRADINGCODEX_SCRATCH_PATH"]
+        "mcp_servers" not in role_configs[role]
         for role in calculation_roles
     )
     assert yaml.safe_load((tmp_path / ".tradingcodex" / "config.yaml").read_text(encoding="utf-8"))["service"]["default_db"] == raw["TRADINGCODEX_DB_PATH"]
@@ -2308,6 +2382,9 @@ def test_explicit_db_override_is_projected_into_launchers_and_mcp(
     configs = [workspace / ".codex" / "config.toml", *sorted((workspace / ".codex" / "agents").glob("*.toml"))]
     for path in configs:
         config = tomllib.loads(path.read_text(encoding="utf-8"))
+        if "mcp_servers" not in config:
+            assert "name" in config
+            continue
         assert config["mcp_servers"]["tradingcodex"]["env"]["TRADINGCODEX_DB_NAME"] == str(db_path.resolve())
 
     env = {**os.environ, "PYTHONPATH": str(ROOT), "TRADINGCODEX_PYTHON": sys.executable}
