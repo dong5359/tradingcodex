@@ -123,6 +123,7 @@ ANTI_OVERFIT_VALIDATION_ROLES = (
 HEAD_MANAGER_SKILLS = (
     "tcx-plan",
     "tcx-workflow",
+    "tcx-expectations",
     "tcx-memory",
     "tcx-automate",
     "tcx-server",
@@ -596,6 +597,7 @@ CORE_SKILL_NAME_PATTERN = re.compile(r"^tcx-[a-z0-9]+(?:-[a-z0-9]+)?$")
 SKILL_SPECS: dict[str, SkillSpec] = {
     "tcx-plan": SkillSpec("tcx-plan", "TCX Plan", ("head-manager",), user_visible=True),
     "tcx-workflow": SkillSpec("tcx-workflow", "TCX Workflow", ("head-manager",), user_visible=True),
+    "tcx-expectations": SkillSpec("tcx-expectations", "TCX Expectations", ("head-manager",), user_visible=True),
     "tcx-memory": SkillSpec("tcx-memory", "TCX Memory", ("head-manager",), user_visible=True),
     "tcx-automate": SkillSpec("tcx-automate", "TCX Automate", ("head-manager",), user_visible=True),
     "tcx-server": SkillSpec("tcx-server", "TCX Server", ("head-manager",), user_visible=True),

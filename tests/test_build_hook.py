@@ -301,6 +301,8 @@ def test_session_start_surfaces_update_in_system_message_and_first_response_noti
 ) -> None:
     current = Version(TRADINGCODEX_VERSION)
     latest = f"{current.major}.{current.minor + 1}.0"
+    if os.name == "nt":
+        expected_command = expected_command.replace("./tcx", r".\tcx.cmd", 1)
     monkeypatch.setenv("TRADINGCODEX_LATEST_RELEASE_VERSION", latest)
     lock_path = workspace / ".tradingcodex/generated/module-lock.json"
     lock = json.loads(lock_path.read_text(encoding="utf-8"))
@@ -343,3 +345,61 @@ def test_session_start_does_not_add_first_response_notice_after_startup(
     context = json.loads(str(result["hookSpecificOutput"]["additionalContext"]))
     assert "first_response_notice" not in context
     assert "update_status" not in context
+
+
+@pytest.mark.parametrize("event", ["pre-tool-use", "permission-request"])
+@pytest.mark.parametrize(
+    "tool_name",
+    ["mcp__codex_apps__github__create_tree", "mcp__codex_apps__github_create_tree"],
+)
+def test_github_blob_documentation_is_not_an_order_effect(
+    workspace: Path, event: str, tool_name: str,
+) -> None:
+    hook = runpy.run_path(str(workspace / ".codex/hooks/tradingcodex_hook.py"))
+    documented_tool = hook["ORDER_TURN_GRANT_TOOL"]
+    payload = tool_payload(tool_name, {
+        "repository_full_name": "example/project",
+        "tree_elements": [{
+            "path": "CHANGELOG.md", "mode": "100644", "type": "blob",
+            "content": f"Document the canonical {documented_tool} service.",
+        }],
+    })
+    assert run_hook(workspace, event, payload) is None
+
+
+@pytest.mark.parametrize("event", ["pre-tool-use", "permission-request"])
+@pytest.mark.parametrize(
+    "case",
+    ["other_tool", "top_level_command", "entry_metadata", "non_blob",
+     "non_text_content", "non_list_elements", "direct_tool"],
+)
+def test_github_blob_exception_preserves_effect_checks(
+    workspace: Path, event: str, case: str,
+) -> None:
+    hook = runpy.run_path(str(workspace / ".codex/hooks/tradingcodex_hook.py"))
+    order_action = hook["ORDER_TURN_GRANT_TOOL"]
+    tool_name = "mcp__codex_apps__github__create_tree"
+    entry = {
+        "path": "README.md", "mode": "100644", "type": "blob",
+        "content": order_action,
+    }
+    tool_input = {"repository_full_name": "example/project", "tree_elements": [entry]}
+    if case == "other_tool":
+        tool_name = "mcp__external__run"
+    elif case == "top_level_command":
+        tool_input["command"] = order_action
+    elif case == "entry_metadata":
+        entry["operation"] = order_action
+    elif case == "non_blob":
+        entry["type"] = "tree"
+    elif case == "non_text_content":
+        entry["content"] = {"command": order_action}
+    elif case == "non_list_elements":
+        tool_input["tree_elements"] = {"content": order_action}
+    elif case == "direct_tool":
+        tool_name = f"mcp__external__{order_action}"
+        tool_input = {}
+    result = run_hook(workspace, event, tool_payload(tool_name, tool_input))
+    assert result is not None
+    assert result["decision"] == "block"
+    assert "Direct broker" in str(result["reason"])

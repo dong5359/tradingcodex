@@ -728,11 +728,11 @@ def test_generated_skill_bundles_project_every_resource_recursively(
             target = raw_target.strip().strip("<>")
             if target.startswith(("/", "#")) or "://" in target:
                 continue
-            assert (template_skill.parent / target).is_file(), (
+            assert (template_skill.parent / target).resolve().is_file(), (
                 template_skill.relative_to(template_root).as_posix(),
                 target,
             )
-            assert (generated_skill.parent / target).is_file(), (
+            assert (generated_skill.parent / target).resolve().is_file(), (
                 generated_skill.relative_to(generated_root).as_posix(),
                 target,
             )

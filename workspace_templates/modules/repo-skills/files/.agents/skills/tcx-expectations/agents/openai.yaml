@@ -1,0 +1,6 @@
+interface:
+  display_name: "TCX Expectations"
+  short_description: "Expectation revisions and conditional entry/exit scenarios"
+  default_prompt: "Use $tcx-expectations to compare forecasts with market expectations and build conditional investment scenarios and entry/exit regions."
+policy:
+  allow_implicit_invocation: true
